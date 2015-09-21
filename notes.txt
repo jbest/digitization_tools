@@ -1,0 +1,17 @@
+Instructions:
+These are very minimal right now, but should get you started. A virtual environment is optional but perhaps useful to reduce clutter and conflicts in your primary Python environment.
+
+Create a virtual environment (optional):
+virtualenv env
+
+Activate the virtual environment (optional):
+source env/bin/activate
+
+Install required Python modules:
+pip install -r requirements.txt
+
+Usage:
+python productivity.py [session_folder_path]
+
+TODO
+Make a general file handler and import the various logging and manipulation tools
