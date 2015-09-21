@@ -13,20 +13,18 @@ Requirements:
 See requirements.txt.
 """
 
-from datetime import datetime, date #, time
+from datetime import datetime
 import sys
 import time
 import os
 import csv
 import re
 
-# If you don't need moving mean calculated, 
-# or don't want to have to install other modules, 
+# If you don't need moving mean calculated,
+# or don't want to have to install other modules,
 # you can remove the following imports then
 # comment out the moving mean calculations
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # parameters
 # File extensions that are used to determine productivity. Others are ignored.
@@ -60,8 +58,6 @@ def get_session_data(session_folder=None):
     if session_folder is not None:
         print 'Analyzing: ', session_folder
         session_re = re.match('(\d\d\d\d)[-_](\d\d)[-_](\d\d)[-_]([a-zA-Z]*)(.*)', session_folder)
-        #print session_re.group(1), session_re.group(2), session_re.group(3), session_re.group(4), session_re.group(5)
-        #print len(session_re.groups())
 
         if session_re:    
             if session_re.group(1):
@@ -107,11 +103,11 @@ try:
         session_path = os.path.abspath(sys.argv[1])
     else:
         session_path = os.path.dirname(os.path.realpath(__file__))
-        print 'No valid directory path provided. Assuming:' , session_path
+        print 'No valid directory path provided. Assuming:', session_path
 except IndexError:
     # No path provided, assuming script directory
     session_path = os.path.dirname(os.path.realpath(__file__))
-    print 'No valid directory path provided. Assuming:' , session_path
+    print 'No valid directory path provided. Assuming:', session_path
 
 session_folder = os.path.basename(session_path)
 print 'session_path', session_path, 'session_folder', session_folder
@@ -149,7 +145,7 @@ for image_data in sorted(image_stats,key=lambda x: x[1]): # sorted ensures resul
     creation_series.append(time_diff)
     try:
         cumulative_images_per_min = 60/cumulative_mean
-    except:
+    except ZeroDivisionError:
         cumulative_images_per_min = 0
     #TODO format floats
     session_date = str(session_data['month']) + '/' + str(session_data['day']) + '/' + str(session_data['year'])
@@ -170,7 +166,21 @@ else:
 reportFile = open(log_file_name, "wb")
 reportWriter = csv.writer(reportFile, delimiter = fieldDelimiter, escapechar='#')
 # header
-reportWriter.writerow(["ImagePath", "FileName", "ImagerUsername", "SessionYear", "SessionMonth", "SessionDay", "SessionOther", "SessionDate", "CreationTime" , "CreationDurationSecs", "CumulativeTimeSecs", "CumulativeMeanSecs", "CumulativeImagesPerMinute", "MovingMeanSecs"])
+reportWriter.writerow([
+    "ImagePath",
+    "FileName",
+    "ImagerUsername",
+    "SessionYear",
+    "SessionMonth",
+    "SessionDay",
+    "SessionOther",
+    "SessionDate",
+    "CreationTime",
+    "CreationDurationSecs",
+    "CumulativeTimeSecs",
+    "CumulativeMeanSecs",
+    "CumulativeImagesPerMinute",
+    "MovingMeanSecs"])
 
 # Merge moving mean into original data and write to file
 for index, item in enumerate(series_data):
