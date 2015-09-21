@@ -1,0 +1,4 @@
+ImagePath,FileName,ImagerUsername,SessionYear,SessionMonth,SessionDay,SessionOther,SessionDate,CreationTime,CreationDurationSecs,CumulativeTimeSecs,CumulativeMeanSecs,CumulativeImagesPerMinute,MovingMeanSecs
+/Users/jbest/Documents/brit-svn/trunk/digitization_tools/productivity/2015-08-13_jbest_test/b.JPG,b.JPG,jbest,2015,8,13,_test,8/13/2015,Mon Jul  6 14:28:31 2015,0,0,0,0,0
+/Users/jbest/Documents/brit-svn/trunk/digitization_tools/productivity/2015-08-13_jbest_test/c.JPG,c.JPG,jbest,2015,8,13,_test,8/13/2015,Mon Jul  6 14:30:34 2015,123.0,123.0,61.5,0.975609756097561,0
+/Users/jbest/Documents/brit-svn/trunk/digitization_tools/productivity/2015-08-13_jbest_test/a.JPG,a.JPG,jbest,2015,8,13,_test,8/13/2015,Mon Jul  6 14:31:42 2015,68.0,191.0,63.666666666666664,0.9424083769633508,0
