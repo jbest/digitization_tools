@@ -1,4 +1,4 @@
-# digitization_tools
+# digitization_tools - productivity.py
 Tools for managing and analyzing digitization workflows for natural history collections.
 
 Instructions:
@@ -16,6 +16,3 @@ These requirements are for the  full suite of digitization tools. Not all are ne
 
 Usage:
 python productivity.py [session_folder_path]
-
-TODO
-Make a general file handler and import the various logging and manipulation tools
