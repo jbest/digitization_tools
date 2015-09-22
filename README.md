@@ -1,9 +1,9 @@
 # digitization_tools
 Tools for managing and analyzing digitization workflows for natural history collections.
 
-productivity.py - Generates a productivity report based on the creation timestamps of image files.
-crop.py - (coming soon) Creates a cropped image of just the primary herbarium label, used for metadata extraction in crowdsourced workflows.
-barcode.py - (coming soon) Extracts barcodes from images and renames files using barcode data.
+productivity.py - Generates a productivity report based on the creation timestamps of image files.  
+crop.py - (coming soon) Creates a cropped image of just the primary herbarium label, used for metadata extraction in crowdsourced workflows.  
+barcode.py - (coming soon) Extracts barcodes from images and renames files using barcode data.  
 
 
 Instructions:  
