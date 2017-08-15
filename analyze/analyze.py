@@ -21,10 +21,8 @@ def md5hash(fname):
 
 # set up argument parser
 ap = argparse.ArgumentParser()
-ap.add_argument("-s", "--source", required = True,
-    help = "Path to the directory that contains the images to be analyzed.")
-ap.add_argument("-m", "--models", required = False,
-    help = "Path to the model file for folder identification through histogram analysis.")
+ap.add_argument("-s", "--source", required=True, help="Path to the directory that contains the images to be analyzed.")
+ap.add_argument("-m", "--models", required=False, help="Path to the model file for folder identification through histogram analysis.")
 #ap.add_argument("-m", "--model", required = True,
 #    help = "Path to location of generated model file.")
 args = vars(ap.parse_args())
@@ -33,32 +31,34 @@ args = vars(ap.parse_args())
 #iterate JPG file list passed from args
 for imagePath in glob.glob(args["source"] + "/*.JPG"):
     scan_start_time = datetime.now()
+    print(scan_start_time)
     # get filename and use as the model name
     #k = imagePath[imagePath.rfind("/") + 1:]
-    print (imagePath)
+    print(imagePath)
     #generate MD5 hash
-    print (md5hash(imagePath))
+    print(md5hash(imagePath))
     #generate UUID for JPG image
-    print (uuid.uuid4())
+    print(uuid.uuid4())
     # check exist of archive file
     # print archive filepath
     # read barcodes from JPG
     barcodes = decode(Image.open(imagePath))
     if len(barcodes) > 0:
-        print (barcodes)
+        print(barcodes)
     else:
-        print ('No barcodes found')
+        print('No barcodes found')
         # compare to folder models
         # save matching models, ranked
         # generate suggested filename? Or should that be done in rename script?
         if args["models"] is None:
-            print ('No model file provided. No histogram analysis done.')
+            print('No model file provided. No histogram analysis done.')
         else:
-            print ('TODO: analyze histogram')
+            print('TODO: analyze histogram')
             # read model file, make sure it exists
         # if no models provided, or no match, set new filename to a default
     # TODO record scan finish time
     scan_end_time = datetime.now()
+    print(scan_end_time)
     # TODO report analysis progress and ETA
     #log JPG data
     #log CR2 data
