@@ -64,6 +64,7 @@ for image_path in glob.glob(directory_path + "/*.JPG"):
     print(image_path)
     basename = os.path.basename(image_path)
     file_name, file_extension = os.path.splitext(basename)
+    print(file_name, file_extension)
     # Get file creation time
     file_creation_time = datetime.fromtimestamp(creation_date(image_path))
     print ('Time:', file_creation_time)
@@ -71,19 +72,19 @@ for image_path in glob.glob(directory_path + "/*.JPG"):
     file_hash = md5hash(image_path)
     #generate UUID for JPG image
     file_uuid = uuid.uuid4()
-    # check exist of archive file
+    # check if a companion archive file exists
+    # iterate through potential extensions for archive files
+    arch_file_path = None
     for archive_extension in ARCHIVE_FILE_TYPES:
-        print archive_extension
-        arch_file_name = file_name + archive_extension
-        """
-        arch_source_filepath = os.path.join(original_dir_path, arch_filename ) 
-        arch_dest_full_filename = original_file_barcode + arch_ext
-        arch_dest_full_filepath = os.path.join(renamed_dir_path, arch_dest_full_filename )
-        """
+        potential_arch_file_name = file_name + archive_extension
+        potential_arch_file_path = os.path.join(directory_path, potential_arch_file_name)
         # test if archive file exists
-        #if os.path.exists(arch_source_filepath):
+        if os.path.exists(potential_arch_file_path):
+            arch_file_path = potential_arch_file_path
+            break
 
     # print archive filepath
+    print ('Archive file:', arch_file_path)
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
     if barcodes:
