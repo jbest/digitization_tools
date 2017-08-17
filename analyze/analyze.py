@@ -2,11 +2,16 @@ import argparse
 from hashlib import md5
 import uuid
 import glob
-from datetime import datetime, date, time
+from datetime import datetime#, date, time
+import os
 from pyzbar.pyzbar import decode
 from PIL import Image
 
-#TODO add accepted barcode types
+# File extensions that are scanned and logged
+INPUT_FILE_TYPES = ('.jpg', '.jpeg', '.JPG', '.JPEG')
+# File type extensions that are logged when filename matches a scanned input file
+ARCHIVE_FILE_TYPES = ('.CR2', '.cr2', '.RAW', '.raw')
+ACCEPTED_SYMBOLOGIES = ['CODE39']
 #TODO add accepted barcode string patterns
 
 def md5hash(fname):
@@ -21,15 +26,17 @@ def md5hash(fname):
 
 # set up argument parser
 ap = argparse.ArgumentParser()
-ap.add_argument("-s", "--source", required=True, help="Path to the directory that contains the images to be analyzed.")
-ap.add_argument("-m", "--models", required=False, help="Path to the model file for folder identification through histogram analysis.")
-#ap.add_argument("-m", "--model", required = True,
-#    help = "Path to location of generated model file.")
+ap.add_argument("-s", "--source", required=True, \
+    help="Path to the directory that contains the images to be analyzed.")
+ap.add_argument("-m", "--models", required=False, \
+    help="Path to the model file for folder identification through histogram analysis.")
 args = vars(ap.parse_args())
 
 #TODO record time start of analysis
 #iterate JPG file list passed from args
-for imagePath in glob.glob(args["source"] + "/*.JPG"):
+directory_path = os.path.realpath(args["source"])
+print('Scanning directory:', directory_path)
+for imagePath in glob.glob(directory_path + "/*.JPG"):
     scan_start_time = datetime.now()
     print(scan_start_time)
     # get filename and use as the model name
@@ -43,8 +50,10 @@ for imagePath in glob.glob(args["source"] + "/*.JPG"):
     # print archive filepath
     # read barcodes from JPG
     barcodes = decode(Image.open(imagePath))
-    if len(barcodes) > 0:
-        print(barcodes)
+    if barcodes:
+        for barcode in barcodes:
+            if str(barcode.type) in ACCEPTED_SYMBOLOGIES:
+                print(barcode.data)
     else:
         print('No barcodes found')
         # compare to folder models
@@ -64,4 +73,4 @@ for imagePath in glob.glob(args["source"] + "/*.JPG"):
     #log CR2 data
     #write to DB?
 
-
+# TODO report total analysis time and stop time
