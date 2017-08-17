@@ -67,12 +67,22 @@ for image_path in glob.glob(directory_path + "/*.JPG"):
     # Get file creation time
     file_creation_time = datetime.fromtimestamp(creation_date(image_path))
     print ('Time:', file_creation_time)
-
     #generate MD5 hash
-    #print(md5hash(image_path))
+    file_hash = md5hash(image_path)
     #generate UUID for JPG image
-    #print(uuid.uuid4())
+    file_uuid = uuid.uuid4()
     # check exist of archive file
+    for archive_extension in ARCHIVE_FILE_TYPES:
+        print archive_extension
+        arch_file_name = file_name + archive_extension
+        """
+        arch_source_filepath = os.path.join(original_dir_path, arch_filename ) 
+        arch_dest_full_filename = original_file_barcode + arch_ext
+        arch_dest_full_filepath = os.path.join(renamed_dir_path, arch_dest_full_filename )
+        """
+        # test if archive file exists
+        #if os.path.exists(arch_source_filepath):
+
     # print archive filepath
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
