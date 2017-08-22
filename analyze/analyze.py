@@ -94,7 +94,12 @@ print(log_file_name)
 reportFile = open(log_file_name, "w")
 reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#')
 # write header
-reportWriter.writerow(["ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
+reportWriter.writerow([\
+    "batch_id", "batch_path",\
+    # add batch directory name?
+    "image_event_id",\
+    "image_path", "basename", "filename", "file_extension", "file_creation_time", "file_hash", "file_uuid",\
+    #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
 #TODO extract name of imager from directory path and save in log file
 
 
