@@ -73,8 +73,14 @@ def casedpath(path):
     r = glob.glob(re.sub(r'([^:/\\])(?=[/\\]|$)', r'[\1]', path))
     return r and r[0] or path
 
-def log_file_data(path=None, file_name=None, file_hash=None, barcodes=None):
-    print(path, file_name, file_hash, file_uuid, barcodes)
+def log_file_data(batch_id = None, batch_path = None, \
+    image_event_id = None, barcodes = None, image_classifications = None, \
+    image_path = None):
+    #print(path, file_name, file_hash, file_uuid, barcodes)
+    reportWriter.writerow([\
+    batch_id, batch_path, \
+    image_event_id, barcodes, image_classifications, \
+    image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid])
 
 # set up argument parser
 ap = argparse.ArgumentParser()
@@ -90,8 +96,6 @@ batch_path = os.path.realpath(args["source"])
 
 # Create file for results
 log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'# Convert date to string in ISO format 
-#log_file_name = log_file_name.replace(':', '--')  # replace : in startTime to make filename work in various file systems   
-print(log_file_name)
 reportFile = open(log_file_name, "w")
 reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#')
 # write header
@@ -99,7 +103,7 @@ reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#
 reportWriter.writerow([\
     "batch_id", "batch_path", \
     "image_event_id", "barcodes", "image_classifications", \
-    "image_path", "basename", "filename", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
+    "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
 #TODO extract name of imager from directory path and save in log file
 
@@ -108,6 +112,7 @@ reportWriter.writerow([\
 #iterate JPG files in directory passed from args
 directory_path = os.path.realpath(args["source"])
 print('Scanning directory:', directory_path)
+#TODO change image search to use INPUT_FILE_TYPES
 for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems to be case sensitive
     scan_start_time = datetime.now()
     image_event_id = str(uuid.uuid4())
@@ -143,6 +148,7 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
             arch_file_path = get_actual_filename2(potential_arch_file_path)
             """
             arch_file_path = potential_arch_file_path
+            #TODO generate hash, uuid, read creation time, etc
             break
 
     # print archive filepath
@@ -170,11 +176,16 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     #print(scan_end_time)
     # TODO report analysis progress and ETA
     #log JPG data
+    log_file_data(batch_id=batch_id, batch_path=batch_path)
     reportWriter.writerow([\
     batch_id, batch_path, \
-    image_event_id, barcodes, image_classifications, \
+    image_event_id, barcodes, "image_classifications", \
     image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid])
     #log CR2 data
+    reportWriter.writerow([\
+    batch_id, batch_path, \
+    image_event_id, barcodes, "image_classifications", \
+    arch_file_path, "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
     #write to DB?
 
 analysis_end_time = datetime.now()
