@@ -85,20 +85,21 @@ ap.add_argument("-m", "--models", required=False, \
 args = vars(ap.parse_args())
 
 analysis_start_time = datetime.now()
-batch_id = uuid.uuid4()
+batch_id = str(uuid.uuid4())
+batch_path = os.path.realpath(args["source"])
 
 # Create file for results
-log_file_name = analysis_start_time.date().isoformat() + '_' + str(batch_id) + '.csv'# Convert date to string in ISO format 
+log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'# Convert date to string in ISO format 
 #log_file_name = log_file_name.replace(':', '--')  # replace : in startTime to make filename work in various file systems   
 print(log_file_name)
 reportFile = open(log_file_name, "w")
 reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#')
 # write header
+# add batch directory name?
 reportWriter.writerow([\
-    "batch_id", "batch_path",\
-    # add batch directory name?
-    "image_event_id",\
-    "image_path", "basename", "filename", "file_extension", "file_creation_time", "file_hash", "file_uuid",\
+    "batch_id", "batch_path", \
+    "image_event_id", "barcodes", "image_classifications", \
+    "image_path", "basename", "filename", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
 #TODO extract name of imager from directory path and save in log file
 
@@ -107,8 +108,9 @@ reportWriter.writerow([\
 #iterate JPG files in directory passed from args
 directory_path = os.path.realpath(args["source"])
 print('Scanning directory:', directory_path)
-for image_path in glob.glob(directory_path + "/*.JPG"):
+for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems to be case sensitive
     scan_start_time = datetime.now()
+    image_event_id = str(uuid.uuid4())
     #print(scan_start_time)
     # Gather file data
     print(image_path)
@@ -160,6 +162,7 @@ for image_path in glob.glob(directory_path + "/*.JPG"):
             print('No model file provided. No histogram analysis done.')
         else:
             print('TODO: analyze histogram')
+            image_classifications = "TODO"
             # read model file, make sure it exists
         # if no models provided, or no match, set new filename to a default
     # TODO record scan finish time
@@ -167,6 +170,10 @@ for image_path in glob.glob(directory_path + "/*.JPG"):
     #print(scan_end_time)
     # TODO report analysis progress and ETA
     #log JPG data
+    reportWriter.writerow([\
+    batch_id, batch_path, \
+    image_event_id, barcodes, image_classifications, \
+    image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid])
     #log CR2 data
     #write to DB?
 
