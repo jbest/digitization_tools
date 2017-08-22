@@ -73,9 +73,9 @@ def casedpath(path):
     r = glob.glob(re.sub(r'([^:/\\])(?=[/\\]|$)', r'[\1]', path))
     return r and r[0] or path
 
-def log_file_data(batch_id = None, batch_path = None, \
-    image_event_id = None, barcodes = None, image_classifications = None, \
-    image_path = None):
+def log_file_data(batch_id=None, batch_path=None, \
+    image_event_id=None, barcodes=None, image_classifications=None, \
+    image_path=None):
     basename = os.path.basename(image_path)
     file_name, file_extension = os.path.splitext(basename)
     # Get file creation time
@@ -189,13 +189,13 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     # TODO report analysis progress and ETA
     #log JPG data
     log_file_data(batch_id=batch_id, batch_path=batch_path, \
-        image_event_id = image_event_id, barcodes = barcodes, image_classifications = 'barcoded_specimen', \
+        image_event_id=image_event_id, barcodes=barcodes, image_classifications='barcoded_specimen', \
         image_path=image_path)
 
     #log CR2 data
     if arch_file_path:
         log_file_data(batch_id=batch_id, batch_path=batch_path, \
-            image_event_id = image_event_id, barcodes = barcodes, image_classifications = 'TODO-image_classifications', \
+            image_event_id=image_event_id, barcodes=barcodes, image_classifications='TODO-image_classifications', \
             image_path=arch_file_path)
     #write to DB?
 
