@@ -76,7 +76,15 @@ def casedpath(path):
 def log_file_data(batch_id = None, batch_path = None, \
     image_event_id = None, barcodes = None, image_classifications = None, \
     image_path = None):
-    #print(path, file_name, file_hash, file_uuid, barcodes)
+    basename = os.path.basename(image_path)
+    file_name, file_extension = os.path.splitext(basename)
+    # Get file creation time
+    file_creation_time = datetime.fromtimestamp(creation_date(image_path))
+    #generate MD5 hash
+    file_hash = md5hash(image_path)
+    #generate UUID for JPG image
+    file_uuid = uuid.uuid4()
+
     reportWriter.writerow([\
     batch_id, batch_path, \
     image_event_id, barcodes, image_classifications, \
@@ -88,6 +96,8 @@ ap.add_argument("-s", "--source", required=True, \
     help="Path to the directory that contains the images to be analyzed.")
 ap.add_argument("-m", "--models", required=False, \
     help="Path to the model file for folder identification through histogram analysis.")
+ap.add_argument("-o", "--output", required=False, \
+    help="Path to the directory where log file is written.")
 args = vars(ap.parse_args())
 
 analysis_start_time = datetime.now()
@@ -96,7 +106,16 @@ batch_path = os.path.realpath(args["source"])
 
 # Create file for results
 log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'# Convert date to string in ISO format 
-reportFile = open(log_file_name, "w")
+# Test output path
+if args["output"] is not None:
+    output_directory = os.path.realpath(args["output"])
+    print('output_directory:', output_directory)
+    #TODO make sure directory exists and is writeable
+    log_file_path = os.path.join(output_directory, log_file_name)
+    reportFile = open(log_file_path, "w")
+else:
+    reportFile = open(log_file_name, "w") # will default to write in location where script is executed
+
 reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#')
 # write header
 # add batch directory name?
@@ -119,16 +138,9 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     #print(scan_start_time)
     # Gather file data
     print(image_path)
+    #TODO getting basename and file name is done twice, maybe simplify?
     basename = os.path.basename(image_path)
     file_name, file_extension = os.path.splitext(basename)
-    print(file_name, file_extension)
-    # Get file creation time
-    file_creation_time = datetime.fromtimestamp(creation_date(image_path))
-    print('Time:', file_creation_time)
-    #generate MD5 hash
-    file_hash = md5hash(image_path)
-    #generate UUID for JPG image
-    file_uuid = uuid.uuid4()
     # check if a companion archive file exists
     # iterate through potential extensions for archive files
     arch_file_path = None
@@ -176,16 +188,15 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     #print(scan_end_time)
     # TODO report analysis progress and ETA
     #log JPG data
-    log_file_data(batch_id=batch_id, batch_path=batch_path)
-    reportWriter.writerow([\
-    batch_id, batch_path, \
-    image_event_id, barcodes, "image_classifications", \
-    image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid])
+    log_file_data(batch_id=batch_id, batch_path=batch_path, \
+        image_event_id = image_event_id, barcodes = barcodes, image_classifications = 'barcoded_specimen', \
+        image_path=image_path)
+
     #log CR2 data
-    reportWriter.writerow([\
-    batch_id, batch_path, \
-    image_event_id, barcodes, "image_classifications", \
-    arch_file_path, "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
+    if arch_file_path:
+        log_file_data(batch_id=batch_id, batch_path=batch_path, \
+            image_event_id = image_event_id, barcodes = barcodes, image_classifications = 'TODO-image_classifications', \
+            image_path=arch_file_path)
     #write to DB?
 
 analysis_end_time = datetime.now()
