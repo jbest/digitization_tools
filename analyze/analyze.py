@@ -82,7 +82,7 @@ def log_file_data(batch_id=None, batch_path=None, \
     file_creation_time = datetime.fromtimestamp(creation_date(image_path))
     #generate MD5 hash
     file_hash = md5hash(image_path)
-    #generate UUID for JPG image
+    #generate UUID for image
     file_uuid = uuid.uuid4()
 
     reportWriter.writerow([\
@@ -135,6 +135,7 @@ print('Scanning directory:', directory_path)
 for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems to be case sensitive
     scan_start_time = datetime.now()
     image_event_id = str(uuid.uuid4())
+    image_classifications = None
     #print(scan_start_time)
     # Gather file data
     print(image_path)
@@ -168,19 +169,22 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
     if barcodes:
+        image_classifications = 'barcoded_specimen'
         for barcode in barcodes:
             if str(barcode.type) in ACCEPTED_SYMBOLOGIES:
                 print(barcode.data)
     else:
         print('No barcodes found')
+        image_classifications = 'folder'
         # compare to folder models
         # save matching models, ranked
         # generate suggested filename? Or should that be done in rename script?
         if args["models"] is None:
             print('No model file provided. No histogram analysis done.')
         else:
-            print('TODO: analyze histogram')
-            image_classifications = "TODO"
+            print('OpenCV disabled - no image classification performed.')
+            # TODO get OpenCV working on all platforms, or implement classification in Pillo
+            #image_classifications = "FIXME"
             # read model file, make sure it exists
         # if no models provided, or no match, set new filename to a default
     # TODO record scan finish time
@@ -189,15 +193,14 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     # TODO report analysis progress and ETA
     #log JPG data
     log_file_data(batch_id=batch_id, batch_path=batch_path, \
-        image_event_id=image_event_id, barcodes=barcodes, image_classifications='barcoded_specimen', \
+        image_event_id=image_event_id, barcodes=barcodes, image_classifications=image_classifications, \
         image_path=image_path)
 
     #log CR2 data
     if arch_file_path:
         log_file_data(batch_id=batch_id, batch_path=batch_path, \
-            image_event_id=image_event_id, barcodes=barcodes, image_classifications='TODO-image_classifications', \
+            image_event_id=image_event_id, barcodes=barcodes, image_classifications=image_classifications, \
             image_path=arch_file_path)
-    #write to DB?
 
 analysis_end_time = datetime.now()
 print('Started:', analysis_start_time)
