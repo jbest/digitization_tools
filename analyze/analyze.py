@@ -8,8 +8,11 @@ import csv
 #import time
 import os
 import platform
+#import cPickle
+import pickle
 from pyzbar.pyzbar import decode
 from PIL import Image
+import cv2
 
 
 # File extensions that are scanned and logged
@@ -103,6 +106,9 @@ args = vars(ap.parse_args())
 analysis_start_time = datetime.now()
 batch_id = str(uuid.uuid4())
 batch_path = os.path.realpath(args["source"])
+if args["models"]:
+    #models = cPickle.loads(open(args["model"]).read())
+    models = pickle.load(open(args["models"], "rb"))
 
 # Create file for results
 log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'# Convert date to string in ISO format 
