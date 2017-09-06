@@ -219,4 +219,4 @@ print('Started:', analysis_start_time)
 print('Completed:', analysis_end_time)
 print('Files analyized:', files_analyzed)
 print('Duration:', analysis_end_time - analysis_start_time)
-
+print('Time per file:', (analysis_end_time - analysis_start_time)/files_analyzed)
