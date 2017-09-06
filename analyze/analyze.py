@@ -2,18 +2,16 @@ import argparse
 from hashlib import md5
 import uuid
 import glob
-from datetime import datetime #, date
+from datetime import datetime
 import re
 import csv
-#import time
 import os
 import platform
-#import cPickle
 import pickle
 from pyzbar.pyzbar import decode
 from PIL import Image
 import cv2
-
+import features
 
 # File extensions that are scanned and logged
 INPUT_FILE_TYPES = ('.jpg', '.jpeg', '.JPG', '.JPEG')
@@ -33,6 +31,10 @@ def md5hash(fname):
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
+def closest_histogram(histogram=None):
+    print('Stub for closest_histogram')
+    return None
 
 def creation_date(path_to_file):
     # From https://stackoverflow.com/a/39501288
@@ -124,14 +126,11 @@ else:
 
 reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#')
 # write header
-# add batch directory name?
 reportWriter.writerow([\
     "batch_id", "batch_path", \
     "image_event_id", "barcodes", "image_classifications", \
     "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
-#TODO extract name of imager from directory path and save in log file
-
 
 #TODO extract information from directory name (imager, station, etc)
 #iterate JPG files in directory passed from args
@@ -144,9 +143,7 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     scan_start_time = datetime.now()
     image_event_id = str(uuid.uuid4())
     image_classifications = None
-    #print(scan_start_time)
     # Gather file data
-    print(image_path)
     #TODO getting basename and file name is done twice, maybe simplify?
     basename = os.path.basename(image_path)
     file_name, file_extension = os.path.splitext(basename)
@@ -194,8 +191,10 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
         if args["models"] is None:
             print('No model file provided. No histogram analysis done.')
         else:
-            print('OpenCV disabled - no image classification performed.')
-            # TODO get OpenCV working on all platforms, or implement classification in Pillo
+            #print('OpenCV disabled - no image classification performed.')
+            image = cv2.imread(image_path)
+            histogram = features.describe(image)
+            best_match = closest_histogram(histogram)
             #image_classifications = "FIXME"
             # read model file, make sure it exists
         # if no models provided, or no match, set new filename to a default
