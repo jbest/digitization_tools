@@ -34,17 +34,13 @@ def md5hash(fname):
 
 def closest_histogram(image_histogram=None):
     candidates = {}
-
     for model_key, model_histogram in models.items():
         diff = features.chi2_distance(image_histogram, model_histogram)
         candidates[model_key] = diff
     # http://stackoverflow.com/questions/3282823/get-key-with-the-least-value-from-a-dictionary
     # http://stackoverflow.com/a/3282904
-    #print min(candidates, key=candidates.get)
     min_value = min(candidates.values())
     min_keys = {}
-    # http://stackoverflow.com/questions/9944963/python-get-key-with-the-least-value-from-a-dictionary-but-multiple-minimum-valu
-    #min_keys = [k for k in candidates if candidates[k] == min_value]
     for k, v in candidates.items():
         if candidates[k] == min_value:
             min_keys[k] = v
@@ -92,7 +88,7 @@ def casedpath(path):
     r = glob.glob(re.sub(r'([^:/\\])(?=[/\\]|$)', r'[\1]', path))
     return r and r[0] or path
 
-def log_file_data(batch_id=None, batch_path=None, \
+def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
     image_event_id=None, barcodes=None, image_classifications=None, \
     image_path=None):
     basename = os.path.basename(image_path)
@@ -106,7 +102,7 @@ def log_file_data(batch_id=None, batch_path=None, \
 
     reportWriter.writerow([\
     batch_id, batch_path, \
-    image_event_id, barcodes, image_classifications, \
+    image_event_id, barcodes, image_classifications, closest_model, \
     image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid])
 
 # set up argument parser
@@ -143,7 +139,7 @@ reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#
 # write header
 reportWriter.writerow([\
     "batch_id", "batch_path", \
-    "image_event_id", "barcodes", "image_classifications", \
+    "image_event_id", "barcodes", "image_classifications", "closest_model",\
     "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
 
@@ -185,8 +181,13 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
             break
 
     # print filepaths
-    print('Image file:', image_path)
-    print('Archive file:', arch_file_path)
+    print('Image file:', os.path.basename(image_path))
+    if arch_file_path is None:
+        print('Archive file: NOT FOUND')
+    else:
+        #print('Archive file:', arch_file_path)
+        print('Archive file:', os.path.basename(arch_file_path))
+        
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
     matching_barcodes = []
@@ -220,13 +221,13 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     #print(scan_end_time)
     # TODO report analysis progress and ETA
     #log JPG data
-    log_file_data(batch_id=batch_id, batch_path=batch_path, \
+    log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
         image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
         image_path=image_path)
 
     #log CR2 data
     if arch_file_path:
-        log_file_data(batch_id=batch_id, batch_path=batch_path, \
+        log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
             image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
             image_path=arch_file_path)
 
@@ -235,4 +236,6 @@ print('Started:', analysis_start_time)
 print('Completed:', analysis_end_time)
 print('Files analyized:', files_analyzed)
 print('Duration:', analysis_end_time - analysis_start_time)
-print('Time per file:', (analysis_end_time - analysis_start_time)/files_analyzed)
+if files_analyzed > 0:
+    print('Time per file:', (analysis_end_time - analysis_start_time)/files_analyzed)
+print('Report written to:',log_file_name)
