@@ -1,5 +1,6 @@
 import argparse
 import glob
+import os
 import features
 import cv2
 import pickle
@@ -14,13 +15,13 @@ args = vars(ap.parse_args())
 model_path = args["model"]
 models = {}
 print('Generating models...')
-for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
-    # get filename and use as the model name
-    # TODO change model name to file basename
-    k = imagePath[imagePath.rfind("/") + 1:]
-    image = cv2.imread(imagePath)
+for image_path in glob.glob(args["dataset"] + "/*.jpg"):
+    basename = os.path.basename(image_path)
+    file_name, file_extension = os.path.splitext(basename)
+    image = cv2.imread(image_path)
     histogram = features.describe(image)
-    models[k] = histogram
+    #TODO prompt user to enter name for model
+    models[file_name] = histogram
 
 f = open(model_path, "wb")
 f.write(pickle.dumps(models))
