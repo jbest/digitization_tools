@@ -174,11 +174,15 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     print('Archive file:', arch_file_path)
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
+    matching_barcodes = []
     if barcodes:
         image_classifications = 'barcoded_specimen'
         for barcode in barcodes:
             if str(barcode.type) in ACCEPTED_SYMBOLOGIES:
-                print(barcode.data)
+                symbology_type = str(barcode.type)
+                data = barcode.data.decode('UTF-8')
+                matching_barcodes.append({'type':symbology_type, 'data':data})
+                print(symbology_type, data)
     else:
         print('No barcodes found')
         image_classifications = 'folder'
@@ -199,13 +203,13 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     # TODO report analysis progress and ETA
     #log JPG data
     log_file_data(batch_id=batch_id, batch_path=batch_path, \
-        image_event_id=image_event_id, barcodes=barcodes, image_classifications=image_classifications, \
+        image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
         image_path=image_path)
 
     #log CR2 data
     if arch_file_path:
         log_file_data(batch_id=batch_id, batch_path=batch_path, \
-            image_event_id=image_event_id, barcodes=barcodes, image_classifications=image_classifications, \
+            image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
             image_path=arch_file_path)
 
 analysis_end_time = datetime.now()
