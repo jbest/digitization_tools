@@ -22,10 +22,9 @@ for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
     histogram = features.describe(image)
     models[k] = histogram
 
-#print(models)
-#pickle.dumps( models, open( model_path, "w" ) )
-
 f = open(model_path, "wb")
 f.write(pickle.dumps(models))
+f.write(pickle.dump(models))
 f.close()
+
 print ('Model file written:', model_path)
