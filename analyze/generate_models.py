@@ -24,7 +24,6 @@ for imagePath in glob.glob(args["dataset"] + "/*.jpg"):
 
 f = open(model_path, "wb")
 f.write(pickle.dumps(models))
-f.write(pickle.dump(models))
 f.close()
 
 print ('Model file written:', model_path)
