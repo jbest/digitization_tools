@@ -32,9 +32,23 @@ def md5hash(fname):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
-def closest_histogram(histogram=None):
-    print('Stub for closest_histogram')
-    return None
+def closest_histogram(image_histogram=None):
+    candidates = {}
+
+    for model_key, model_histogram in models.items():
+        diff = features.chi2_distance(image_histogram, model_histogram)
+        candidates[model_key] = diff
+    # http://stackoverflow.com/questions/3282823/get-key-with-the-least-value-from-a-dictionary
+    # http://stackoverflow.com/a/3282904
+    #print min(candidates, key=candidates.get)
+    min_value = min(candidates.values())
+    min_keys = {}
+    # http://stackoverflow.com/questions/9944963/python-get-key-with-the-least-value-from-a-dictionary-but-multiple-minimum-valu
+    #min_keys = [k for k in candidates if candidates[k] == min_value]
+    for k, v in candidates.items():
+        if candidates[k] == min_value:
+            min_keys[k] = v
+    return min_keys
 
 def creation_date(path_to_file):
     # From https://stackoverflow.com/a/39501288
@@ -108,8 +122,9 @@ args = vars(ap.parse_args())
 analysis_start_time = datetime.now()
 batch_id = str(uuid.uuid4())
 batch_path = os.path.realpath(args["source"])
+# load models from pickle file
 if args["models"]:
-    #models = cPickle.loads(open(args["model"]).read())
+    print('Loading model histograms.')
     models = pickle.load(open(args["models"], "rb"))
 
 # Create file for results
@@ -169,7 +184,8 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
             #TODO generate hash, uuid, read creation time, etc
             break
 
-    # print archive filepath
+    # print filepaths
+    print('Image file:', image_path)
     print('Archive file:', arch_file_path)
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
@@ -194,7 +210,8 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
             #print('OpenCV disabled - no image classification performed.')
             image = cv2.imread(image_path)
             histogram = features.describe(image)
-            best_match = closest_histogram(histogram)
+            best_match = closest_histogram(image_histogram=histogram)
+            print ('best_match', best_match)
             #image_classifications = "FIXME"
             # read model file, make sure it exists
         # if no models provided, or no match, set new filename to a default
