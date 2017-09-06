@@ -136,9 +136,11 @@ reportWriter.writerow([\
 #TODO extract information from directory name (imager, station, etc)
 #iterate JPG files in directory passed from args
 directory_path = os.path.realpath(args["source"])
+files_analyzed = 0
 print('Scanning directory:', directory_path)
 #TODO change image search to use INPUT_FILE_TYPES
 for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems to be case sensitive
+    files_analyzed += 1
     scan_start_time = datetime.now()
     image_event_id = str(uuid.uuid4())
     image_classifications = None
@@ -215,5 +217,6 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
 analysis_end_time = datetime.now()
 print('Started:', analysis_start_time)
 print('Completed:', analysis_end_time)
+print('Files analyized:', files_analyzed)
 print('Duration:', analysis_end_time - analysis_start_time)
 
