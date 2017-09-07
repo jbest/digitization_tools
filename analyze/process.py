@@ -58,7 +58,7 @@ with open(args["source"]) as csvfile:
         if model_match_string:
             model_match = ast.literal_eval(model_match_string)
             [(model_name, model_similarity)] = model_match.items()
-            print(model_name)
+            #print(model_name)
         if barcodes:
             # Assumming all images with barcodes are specimens
             if len(barcodes) == 1:
@@ -69,24 +69,37 @@ with open(args["source"]) as csvfile:
                     #TODO don't add underscore for last barcode string
                     new_filename = new_filename + barcode['data'] + '_'
             new_basename = new_filename+original_file_extension
-            print (new_basename)
+            #print (new_basename)
             current_path = os.path.join(current_working_path, original_basename)
             new_path = os.path.join(current_working_path, new_basename)
             if os.path.exists(current_path):
-                print('Exists:', current_path)
-                print('Change:', new_path)
+                #print('Exists:', current_path)
+                #print('Change:', new_path)
                 if os.path.exists(new_path):
-                    print('ALERT - file exists, can not overwrite.')
+                    print('ALERT - file exists, can not overwrite:')
+                    print(new_path)
                 else:
                     os.rename(current_path, new_path)
         else:
-            print('No barcode')
+            #print('No barcode')
             new_filename = None
             if model_name:
                 new_filename = model_name + '_' + row['file_uuid']
                 new_basename = new_filename+original_file_extension
-                print(new_basename)
-
+                current_path = os.path.join(current_working_path, original_basename)
+                new_path = os.path.join(current_working_path, new_basename)
+                #print(new_basename)
+                if os.path.exists(current_path):
+                    #print('Exists:', current_path)
+                    #print('Change:', new_path)
+                    if os.path.exists(new_path):
+                        #TODO Log alerts
+                        print('ALERT - file exists, can not overwrite:')
+                        print(new_path)
+                    else:
+                        os.rename(current_path, new_path)
+                else:
+                    print('ALERT - original file not found')
         """
         if row['image_classifications']=='folder':
             source_path = row['image_path']
