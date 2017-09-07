@@ -46,13 +46,21 @@ analysis_start_time = datetime.now()
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
+        #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
+        current_working_path = row['batch_path']
+        original_basename = row['basename']
+        original_file_name, original_file_extension = os.path.splitext(original_basename)
         # Get all barcodes
         barcodes = ast.literal_eval(row['barcodes'])
+        model_match_string = None
+        model_name = None
+        model_match_string = row['closest_model']
+        if model_match_string:
+            model_match = ast.literal_eval(model_match_string)
+            [(model_name, model_similarity)] = model_match.items()
+            print(model_name)
         if barcodes:
-            #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
-            current_working_path = row['batch_path']
-            original_basename = row['basename']
-            original_file_name, original_file_extension = os.path.splitext(original_basename)
+            # Assumming all images with barcodes are specimens
             if len(barcodes) == 1:
                 new_filename = barcodes[0]['data']
             else:
@@ -71,6 +79,13 @@ with open(args["source"]) as csvfile:
                     print('ALERT - file exists, can not overwrite.')
                 else:
                     os.rename(current_path, new_path)
+        else:
+            print('No barcode')
+            new_filename = None
+            if model_name:
+                new_filename = model_name + '_' + row['file_uuid']
+                new_basename = new_filename+original_file_extension
+                print(new_basename)
 
         """
         if row['image_classifications']=='folder':
