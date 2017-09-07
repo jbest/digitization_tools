@@ -191,6 +191,7 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
     matching_barcodes = []
+    best_match = None
     if barcodes:
         image_classifications = 'barcoded_specimen'
         for barcode in barcodes:
@@ -208,14 +209,10 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
         if args["models"] is None:
             print('No model file provided. No histogram analysis done.')
         else:
-            #print('OpenCV disabled - no image classification performed.')
             image = cv2.imread(image_path)
             histogram = features.describe(image)
             best_match = closest_histogram(image_histogram=histogram)
             print ('best_match', best_match)
-            #image_classifications = "FIXME"
-            # read model file, make sure it exists
-        # if no models provided, or no match, set new filename to a default
     # TODO record scan finish time
     scan_end_time = datetime.now()
     #print(scan_end_time)
