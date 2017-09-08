@@ -191,9 +191,10 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     # read barcodes from JPG
     barcodes = decode(Image.open(image_path))
     matching_barcodes = []
+    image_classifications = []
     best_match = None
     if barcodes:
-        image_classifications = 'barcoded_specimen'
+        image_classifications.append('barcoded')
         for barcode in barcodes:
             if str(barcode.type) in ACCEPTED_SYMBOLOGIES:
                 symbology_type = str(barcode.type)
@@ -202,7 +203,7 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
                 print(symbology_type, data)
     else:
         print('No barcodes found')
-        image_classifications = 'folder'
+        image_classifications.append('folder')
         # compare to folder models
         # save matching models, ranked
         # generate suggested filename? Or should that be done in rename script?
@@ -212,6 +213,9 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
             image = cv2.imread(image_path)
             histogram = features.describe(image)
             best_match = closest_histogram(image_histogram=histogram)
+            [(model_name, model_similarity)] = best_match.items()
+            if 'specimen' in model_name:
+                image_classifications.append('ambiguous')
             print ('best_match', best_match)
     # TODO record scan finish time
     scan_end_time = datetime.now()
@@ -219,10 +223,11 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     # TODO report analysis progress and ETA
 
     #log CR2 data
+    image_classifications_string = ",".join(image_classifications)
     if arch_file_path:
         arch_file_uuid = uuid.uuid4()
         log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
-            image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
+            image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications_string, \
             image_path=arch_file_path, file_uuid=arch_file_uuid)
     else:
         arch_file_uuid = None
@@ -230,7 +235,7 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     #log JPG data
     derivative_file_uuid = uuid.uuid4()
     log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
-        image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
+        image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications_string, \
         image_path=image_path, file_uuid=derivative_file_uuid, derived_from_file=arch_file_uuid)
 
 
