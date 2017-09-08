@@ -35,25 +35,42 @@ ap.add_argument("-f", "--folder", required=False, \
 #    help="Path to the directory where folder images are copied.")
 args = vars(ap.parse_args())
 
+class folder():
+    def __init__(self, uuid=None, filename=None, model_name=None):
+        self.uuid = uuid
+        self.filename = filename
+        self.model_name = model_name
+        self.specimens = []
+    def __str__(self):
+        return 'Folder contains: ' + str(self.specimens)
+    def add_specimen(self, image_name=None, uuid=None, barcodes=None):
+        self.specimens.append({'image_name':image_name, 'uuid':uuid})
+
+folder_list = []
 local_path = os.path.dirname(os.path.realpath(__file__))
 analysis_start_time = datetime.now()
 
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
+    initial_folder = folder()
+    current_folder = initial_folder
+    print(initial_folder)
+    folder_list.append(initial_folder)
     for row in reader:
         #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
         current_working_path = row['batch_path']
         original_basename = row['basename']
-        original_file_name, original_file_extension = os.path.splitext(original_basename)
+        original_filename, original_file_extension = os.path.splitext(original_basename)
         # Get all barcodes
         barcodes = ast.literal_eval(row['barcodes'])
         model_match_string = None
         model_name = None
         model_match_string = row['closest_model']
         if model_match_string:
+            # assuming image is folder
             model_match = ast.literal_eval(model_match_string)
             [(model_name, model_similarity)] = model_match.items()
-            #print(model_name)
+            current_folder.model_name = model_name
         if barcodes:
             # Assumming all images with barcodes are specimens
             if len(barcodes) == 1:
@@ -75,6 +92,7 @@ with open(args["source"]) as csvfile:
                     print(new_path)
                 else:
                     os.rename(current_path, new_path)
+
         else:
             #Assuming image is a folder 
             new_filename = None
@@ -93,11 +111,14 @@ with open(args["source"]) as csvfile:
                         print(new_path)
                     else:
                         os.rename(current_path, new_path)
+                        current_folder.filename = new_filename
                         #TODO write folder JSON file, or create record in memory to write later
                 else:
                     print('ALERT - original file not found')
 
 analysis_end_time = datetime.now()
+for folder in folder_list:
+    print(folder)
 print('Started:', analysis_start_time)
 print('Completed:', analysis_end_time)
 print('Duration:', analysis_end_time - analysis_start_time)
