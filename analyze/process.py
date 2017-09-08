@@ -1,6 +1,7 @@
 #process.py
 
 """
+TODO:
 compare differences in sort order:
 -filename
 -creation date
@@ -22,25 +23,19 @@ import os
 import shutil
 import ast
 
-
 FIELD_DELIMITER = ',' # delimiter used in output CSV
-
-
 # set up argument parser
 ap = argparse.ArgumentParser()
 ap.add_argument("-s", "--source", required=True, \
     help="Path to the CSV file.")
+ap.add_argument("-f", "--folder", required=False, \
+    choices=['f', 'l'], \
+    help="Folder sequence. 'f' - folder first, 'l' - folder last")
 #ap.add_argument("-o", "--output", required=False, \
 #    help="Path to the directory where folder images are copied.")
 args = vars(ap.parse_args())
 
 local_path = os.path.dirname(os.path.realpath(__file__))
-
-"""
-dest_directory = os.path.join(local_path, 'folder_images') 
-if not os.path.exists(dest_directory):
-    os.makedirs(dest_directory)
-"""
 analysis_start_time = datetime.now()
 
 with open(args["source"]) as csvfile:
@@ -81,7 +76,7 @@ with open(args["source"]) as csvfile:
                 else:
                     os.rename(current_path, new_path)
         else:
-            #print('No barcode')
+            #Assuming image is a folder 
             new_filename = None
             if model_name:
                 new_filename = model_name + '_' + row['file_uuid']
@@ -98,17 +93,9 @@ with open(args["source"]) as csvfile:
                         print(new_path)
                     else:
                         os.rename(current_path, new_path)
+                        #TODO write folder JSON file, or create record in memory to write later
                 else:
                     print('ALERT - original file not found')
-        """
-        if row['image_classifications']=='folder':
-            source_path = row['image_path']
-            print (source_path)
-            basename = os.path.basename(source_path)
-            print (basename)
-            dest_file_path = (os.path.join(dest_directory, basename))
-            shutil.copy2(source_path, dest_file_path)
-        """
 
 analysis_end_time = datetime.now()
 print('Started:', analysis_start_time)
