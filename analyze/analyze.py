@@ -90,7 +90,7 @@ def casedpath(path):
 
 def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
     image_event_id=None, barcodes=None, image_classifications=None, \
-    image_path=None):
+    image_path=None, file_uuid=None, derived_from_file=None):
     basename = os.path.basename(image_path)
     file_name, file_extension = os.path.splitext(basename)
     # Get file creation time
@@ -98,12 +98,12 @@ def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
     #generate MD5 hash
     file_hash = md5hash(image_path)
     #generate UUID for image
-    file_uuid = uuid.uuid4()
+    #file_uuid = uuid.uuid4()
 
     reportWriter.writerow([\
     batch_id, batch_path, \
     image_event_id, barcodes, image_classifications, closest_model, \
-    image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid])
+    image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file])
 
 # set up argument parser
 ap = argparse.ArgumentParser()
@@ -140,7 +140,7 @@ reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#
 reportWriter.writerow([\
     "batch_id", "batch_path", \
     "image_event_id", "barcodes", "image_classifications", "closest_model",\
-    "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid"])
+    "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid", "derived_from_file"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
 
 #TODO extract information from directory name (imager, station, etc)
@@ -217,16 +217,22 @@ for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems 
     scan_end_time = datetime.now()
     #print(scan_end_time)
     # TODO report analysis progress and ETA
-    #log JPG data
-    log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
-        image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
-        image_path=image_path)
 
     #log CR2 data
     if arch_file_path:
+        arch_file_uuid = uuid.uuid4()
         log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
             image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
-            image_path=arch_file_path)
+            image_path=arch_file_path, file_uuid=arch_file_uuid)
+    else:
+        arch_file_uuid = None
+
+    #log JPG data
+    derivative_file_uuid = uuid.uuid4()
+    log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
+        image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications, \
+        image_path=image_path, file_uuid=derivative_file_uuid, derived_from_file=arch_file_uuid)
+
 
 analysis_end_time = datetime.now()
 print('Started:', analysis_start_time)
