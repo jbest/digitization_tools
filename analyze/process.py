@@ -59,6 +59,9 @@ with open(args["source"]) as csvfile:
     for row in reader:
         #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
         current_working_path = row['batch_path']
+        image_classifications = row['image_classifications']
+        if 'folder' in image_classifications:
+            print("FOLDER")
         original_basename = row['basename']
         original_filename, original_file_extension = os.path.splitext(original_basename)
         # Get all barcodes
