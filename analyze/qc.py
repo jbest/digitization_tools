@@ -17,7 +17,7 @@ import os
 from PIL import Image
 
 MODEL_MATCH_MAX = 1.0 #Threshold above which records are flagged for further QC
-
+MODELS = {'G':'generic specimen', 'S':'BRIT specimen', 'AL':'Alabama folder', 'TN': 'Tennessee folder', 'F':'Other folder', 'N':'no match'}
 #TODO load models file to use as options for re-classification by user input
 
 # set up argument parser
@@ -78,9 +78,20 @@ for row in ambiguous:
         print('Image classifed as', row['image_classifications'])
         img = Image.open(row['image_path'])
         img.show()
-        i = input('Classify the image: ')
-        print(i)
+        for k, v in MODELS.items():
+            print(k, v)
+        while True:
+            i = input('Classify the image: ')
+            i = i.upper()
+            try:
+                print (MODELS[i])
+                new_model = MODELS[i]
+                break
+            except KeyError:
+                print('Not a valid model.')
 
+
+    #TODO scale image to reasonable size
     #TODO close image after classification
     # see https://stackoverflow.com/questions/6725099/how-can-i-close-an-image-shown-to-the-user-with-the-python-imaging-library
 
