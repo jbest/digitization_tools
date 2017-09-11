@@ -24,6 +24,8 @@ MODELS = {'G':'generic specimen', 'S':'BRIT specimen', 'AL':'Alabama folder', 'T
 ap = argparse.ArgumentParser()
 ap.add_argument("-s", "--source", required=True, \
     help="Path to the CSV file.")
+ap.add_argument("-f", "--fix", action="store_true", \
+    help="Prompt user to fix problems.")
 #ap.add_argument("-o", "--output", required=False, \
 #    help="Path to the directory where folder images are copied.")
 args = vars(ap.parse_args())
@@ -71,24 +73,25 @@ print ('Mult. barcodes:', len(multiple_barcodes))
 
 # Fix problems
 # Ambiguous
-for row in ambiguous:
-    basename = os.path.basename(row['image_path'])
-    filename, file_extension = os.path.splitext(basename)
-    if file_extension == '.JPG':
-        print('Image classifed as', row['image_classifications'])
-        img = Image.open(row['image_path'])
-        img.show()
-        for k, v in MODELS.items():
-            print(k, v)
-        while True:
-            i = input('Classify the image: ')
-            i = i.upper()
-            try:
-                print (MODELS[i])
-                new_model = MODELS[i]
-                break
-            except KeyError:
-                print('Not a valid model.')
+if args["fix"]:
+    for row in ambiguous:
+        basename = os.path.basename(row['image_path'])
+        filename, file_extension = os.path.splitext(basename)
+        if file_extension == '.JPG':
+            print('Image classifed as', row['image_classifications'])
+            img = Image.open(row['image_path'])
+            img.show()
+            for k, v in MODELS.items():
+                print(k, v)
+            while True:
+                i = input('Classify the image: ')
+                i = i.upper()
+                try:
+                    print (MODELS[i])
+                    new_model = MODELS[i]
+                    break
+                except KeyError:
+                    print('Not a valid model.')
 
 
     #TODO scale image to reasonable size
