@@ -66,22 +66,24 @@ for row in ambiguous:
     print (row)
 """
 print ('Ambiguous:', len(ambiguous))
-print ('Models: ', len(poor_model_match))
+print ('Poor model match: ', len(poor_model_match))
 print ('Mult. barcodes:', len(multiple_barcodes))
 
 # Fix problems
-"""
-basename = os.path.basename(row['image_path'])
-filename, file_extension = os.path.splitext(basename)
-if file_extension == '.JPG':
-    print('Image classifed as', row['image_classifications'])
-    img = Image.open(row['image_path'])
-    img.show()
-    i = input('Classify the image: ')
-    print(i)
+# Ambiguous
+for row in ambiguous:
+    basename = os.path.basename(row['image_path'])
+    filename, file_extension = os.path.splitext(basename)
+    if file_extension == '.JPG':
+        print('Image classifed as', row['image_classifications'])
+        img = Image.open(row['image_path'])
+        img.show()
+        i = input('Classify the image: ')
+        print(i)
+
     #TODO close image after classification
     # see https://stackoverflow.com/questions/6725099/how-can-i-close-an-image-shown-to-the-user-with-the-python-imaging-library
-"""
+
 
 analysis_end_time = datetime.now()
 
