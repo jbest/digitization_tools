@@ -13,37 +13,75 @@ import glob
 from datetime import datetime 
 import csv
 import ast
+import os
+from PIL import Image
 
-MODEL_MATCH_MAX = 1.0
+MODEL_MATCH_MAX = 1.0 #Threshold above which records are flagged for further QC
+
+#TODO load models file to use as options for re-classification by user input
 
 # set up argument parser
 ap = argparse.ArgumentParser()
 ap.add_argument("-s", "--source", required=True, \
     help="Path to the CSV file.")
-ap.add_argument("-f", "--folder", required=False, \
-    choices=['f', 'l'], \
-    help="Folder sequence. 'f' - folder first, 'l' - folder last")
 #ap.add_argument("-o", "--output", required=False, \
 #    help="Path to the directory where folder images are copied.")
 args = vars(ap.parse_args())
 
 #local_path = os.path.dirname(os.path.realpath(__file__))
 analysis_start_time = datetime.now()
+data = []
+ambiguous = []
+multiple_barcodes = []
+poor_model_match = []
 
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        model_match_string = None
-        model_name = None
-        model_similarity = None
-        model_match_string = row['closest_model']
-        if model_match_string:
-            model_match = ast.literal_eval(model_match_string)
-            [(model_name, model_similarity)] = model_match.items()
-            if model_similarity > MODEL_MATCH_MAX:
-                print('Poor model match:', model_similarity)
-        if 'ambiguous' in row['image_classifications']:
-            print ('AMBIG', row['image_path'])
+        data.append(row)
+
+for row in data:
+    model_match_string = None
+    model_name = None
+    model_similarity = None
+    model_match_string = row['closest_model']
+    barcodes_string = row['barcodes']
+    barcodes = ast.literal_eval(barcodes_string)
+    if model_match_string:
+        model_match = ast.literal_eval(model_match_string)
+        [(model_name, model_similarity)] = model_match.items()
+        if model_similarity > MODEL_MATCH_MAX:
+            #print('Poor model match:', model_similarity)
+            poor_model_match.append(row)
+    if 'ambiguous' in row['image_classifications']:
+        #print ('AMBIG', row['image_path'])
+        ambiguous.append(row)
+    if barcodes:
+        if len(barcodes) > 1:
+            #print (barcodes, len(barcodes))
+            multiple_barcodes.append(row)
+
+"""
+for row in ambiguous:
+    print (row)
+"""
+print ('Ambiguous:', len(ambiguous))
+print ('Models: ', len(poor_model_match))
+print ('Mult. barcodes:', len(multiple_barcodes))
+
+# Fix problems
+"""
+basename = os.path.basename(row['image_path'])
+filename, file_extension = os.path.splitext(basename)
+if file_extension == '.JPG':
+    print('Image classifed as', row['image_classifications'])
+    img = Image.open(row['image_path'])
+    img.show()
+    i = input('Classify the image: ')
+    print(i)
+    #TODO close image after classification
+    # see https://stackoverflow.com/questions/6725099/how-can-i-close-an-image-shown-to-the-user-with-the-python-imaging-library
+"""
 
 analysis_end_time = datetime.now()
 
