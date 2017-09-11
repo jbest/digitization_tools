@@ -14,6 +14,7 @@ histograms = {}
 print ('Reading images...')
 for imagePath in glob.glob(args["images"] + "/*.JPG"):
     k = imagePath[imagePath.rfind("/") + 1:]
+    print('image_key',k)
     image = cv2.imread(imagePath)
     histogram = features.describe(image)
     histograms[k] = histogram
@@ -39,10 +40,7 @@ for image, image_histogram in histograms.items():
     min_keys = {}
     # http://stackoverflow.com/questions/9944963/python-get-key-with-the-least-value-from-a-dictionary-but-multiple-minimum-valu
     #min_keys = [k for k in candidates if candidates[k] == min_value]
-    print('Min Val:', min_value)
     for k, v in candidates.items():
-        print(k, v)
-        print(candidates[k])
         if candidates[k] == min_value:
             min_keys[k] = v
     print (min_keys)
