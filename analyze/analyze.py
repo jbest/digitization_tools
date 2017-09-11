@@ -149,6 +149,7 @@ directory_path = os.path.realpath(args["source"])
 files_analyzed = 0
 print('Scanning directory:', directory_path)
 #TODO change image search to use INPUT_FILE_TYPES
+#TODO sort glob results before processing, see https://stackoverflow.com/a/6774404
 for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems to be case sensitive
     files_analyzed += 1
     scan_start_time = datetime.now()
