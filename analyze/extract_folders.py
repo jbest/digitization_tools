@@ -8,7 +8,6 @@ import shutil
 
 FIELD_DELIMITER = ',' # delimiter used in output CSV
 
-
 # set up argument parser
 ap = argparse.ArgumentParser()
 ap.add_argument("-s", "--source", required=True, \
