@@ -47,7 +47,10 @@ for row in data:
     model_similarity = None
     model_match_string = row['closest_model']
     barcodes_string = row['barcodes']
-    barcodes = ast.literal_eval(barcodes_string)
+    if barcodes_string:
+        barcodes = ast.literal_eval(barcodes_string)
+    else:
+        barcodes = None
     if model_match_string:
         model_match = ast.literal_eval(model_match_string)
         [(model_name, model_similarity)] = model_match.items()
