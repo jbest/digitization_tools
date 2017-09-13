@@ -46,7 +46,11 @@ with open(args["source"]) as csvfile:
         original_basename = row['basename']
         original_filename, original_file_extension = os.path.splitext(original_basename)
         # Get all barcodes
-        barcodes = ast.literal_eval(row['barcodes'])
+        barcodes_string = row['barcodes']
+        if barcodes_string:
+            barcodes = ast.literal_eval(barcodes_string)
+        else:
+        barcodes = None
         model_match_string = None
         model_name = None
         model_match_string = row['closest_model']
