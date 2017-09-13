@@ -8,10 +8,12 @@ import csv
 import os
 import platform
 import pickle
+import sqlite3 as lite
 from pyzbar.pyzbar import decode
 from PIL import Image
 import cv2
 import features
+
 
 # File extensions that are scanned and logged
 INPUT_FILE_TYPES = ('.jpg', '.jpeg', '.JPG', '.JPEG')
@@ -99,6 +101,26 @@ def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
     file_hash = md5hash(image_path)
     datetime_analyzed = datetime.now()
 
+    # clean up values for writing to SQLite (doesn't like dicts)
+    if barcodes:
+        barcodes = str(barcodes)
+    else:
+        barcodes = ''
+    if closest_model:
+        closest_model = str()
+    else:
+        closest_model = ''
+
+    #cur.execute("INSERT INTO images (batch_path, image_event_id, datetime_analyzed) VALUES ('test', 'test', 'test')")
+    #cur.execute("INSERT INTO images (batch_path, image_event_id, datetime_analyzed) VALUES (?, ?, ?)", (batch_path, image_event_id, datetime_analyzed))
+    cur.execute(\
+        "INSERT INTO images (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file)\
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)", \
+        (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file))
+    #datetime_analyzed
+    #barcodes, image_classifications, closest_model, image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file
+    conn.commit()
+
     reportWriter.writerow([\
     batch_id, batch_path, \
     image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
@@ -113,6 +135,18 @@ ap.add_argument("-m", "--models", required=False, \
 ap.add_argument("-o", "--output", required=False, \
     help="Path to the directory where log file is written.")
 args = vars(ap.parse_args())
+
+# set up database
+conn = lite.connect('workflow.db')
+cur = conn.cursor()
+try:
+    cur.execute('''CREATE TABLE images (id INTEGER PRIMARY KEY, \
+        batch_id text, batch_path text, image_event_id text, datetime_analyzed text, \
+        barcodes text, image_classifications text, closest_model text, \
+        image_path text, basename text, file_name text, file_extension text, \
+        file_creation_time text, file_hash text, file_uuid text, derived_from_file text)''')
+except lite.Error as e:
+    print(e)
 
 analysis_start_time = datetime.now()
 batch_id = str(uuid.uuid4())
@@ -224,7 +258,7 @@ for image_path in sorted(glob.glob(os.path.join(directory_path, '*.JPG')), key=o
     #log CR2 data
     image_classifications_string = ",".join(image_classifications)
     if arch_file_path:
-        arch_file_uuid = uuid.uuid4()
+        arch_file_uuid = str(uuid.uuid4())
         log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
             image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications_string, \
             image_path=arch_file_path, file_uuid=arch_file_uuid)
@@ -232,13 +266,16 @@ for image_path in sorted(glob.glob(os.path.join(directory_path, '*.JPG')), key=o
         arch_file_uuid = None
 
     #log JPG data
-    derivative_file_uuid = uuid.uuid4()
+    derivative_file_uuid = str(uuid.uuid4())
     log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
         image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications_string, \
         image_path=image_path, file_uuid=derivative_file_uuid, derived_from_file=arch_file_uuid)
 
 
 analysis_end_time = datetime.now()
+
+if conn:
+    conn.close()
 print('Started:', analysis_start_time)
 print('Completed:', analysis_end_time)
 print('Files analyized:', files_analyzed)
