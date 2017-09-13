@@ -11,6 +11,8 @@ FIELD_DELIMITER = ',' # delimiter used in output CSV
 ap = argparse.ArgumentParser()
 ap.add_argument("-s", "--source", required=True, \
     help="Path to the CSV file.")
+ap.add_argument("-p", "--path", nargs='?', const=None, required=True, \
+    help="Path used to replace the original batch path (when files are moved between analysis and processing).")
 ap.add_argument("-f", "--folder", required=False, \
     choices=['f', 'l'], \
     help="Folder sequence. 'f' - folder first, 'l' - folder last")
@@ -41,6 +43,10 @@ with open(args["source"]) as csvfile:
     folder_list.append(initial_folder)
     for row in reader:
         #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
+        if args["path"]:
+            print(args["path"])
+        else:
+            print('No path')
         current_working_path = row['batch_path']
         image_classifications = row['image_classifications']
         original_basename = row['basename']
