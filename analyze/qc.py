@@ -9,7 +9,6 @@ display image, prompt to fix
 """
 
 import argparse
-import glob
 from datetime import datetime 
 import csv
 import ast
@@ -67,9 +66,9 @@ for row in data:
 for row in ambiguous:
     print (row)
 """
-print ('Ambiguous:', len(ambiguous))
-print ('Poor model match: ', len(poor_model_match))
-print ('Mult. barcodes:', len(multiple_barcodes))
+print('Ambiguous:', len(ambiguous))
+print('Poor model match: ', len(poor_model_match))
+print('Mult. barcodes:', len(multiple_barcodes))
 
 # Fix problems
 # Ambiguous
@@ -87,7 +86,7 @@ if args["fix"]:
                 i = input('Classify the image: ')
                 i = i.upper()
                 try:
-                    print (MODELS[i])
+                    print(MODELS[i])
                     new_model = MODELS[i]
                     break
                 except KeyError:

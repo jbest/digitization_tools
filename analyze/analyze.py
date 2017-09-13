@@ -123,7 +123,7 @@ if args["models"]:
     models = pickle.load(open(args["models"], "rb"))
 
 # Create file for results
-log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'# Convert date to string in ISO format 
+log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'
 # Test output path
 if args["output"] is not None:
     output_directory = os.path.realpath(args["output"])
@@ -134,7 +134,7 @@ if args["output"] is not None:
 else:
     reportFile = open(log_file_name, "w") # will default to write in location where script is executed
 
-reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#')
+reportWriter = csv.writer(reportFile, delimiter=FIELD_DELIMITER, escapechar='#')
 # write header
 reportWriter.writerow([\
     "batch_id", "batch_path", \
@@ -215,7 +215,7 @@ for image_path in sorted(glob.glob(os.path.join(directory_path, '*.JPG')), key=o
             [(model_name, model_similarity)] = best_match.items()
             if 'specimen' in model_name:
                 image_classifications.append('ambiguous')
-            print ('best_match', best_match)
+            print('best_match', best_match)
     # TODO record scan finish time
     scan_end_time = datetime.now()
     #print(scan_end_time)
@@ -245,4 +245,4 @@ print('Files analyized:', files_analyzed)
 print('Duration:', analysis_end_time - analysis_start_time)
 if files_analyzed > 0:
     print('Time per file:', (analysis_end_time - analysis_start_time)/files_analyzed)
-print('Report written to:',log_file_name)
+print('Report written to:', log_file_name)

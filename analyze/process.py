@@ -1,26 +1,9 @@
 #process.py
 
-"""
-TODO:
-compare differences in sort order:
--filename
--creation date
-find duplicate barcodes
-determine most likely image classification and use for filename
-
-change filename, all names unique, no overwritten files
-record changes
-leave any problem files unchanged
-flag folder images and record which folders contain which specimens
-generate skeletal data files
-"""
-
 import argparse
-import glob
-from datetime import datetime 
+from datetime import datetime
 import csv
 import os
-import shutil
 import ast
 
 FIELD_DELIMITER = ',' # delimiter used in output CSV
@@ -125,4 +108,3 @@ for folder in folder_list:
 print('Started:', analysis_start_time)
 print('Completed:', analysis_end_time)
 print('Duration:', analysis_end_time - analysis_start_time)
-
