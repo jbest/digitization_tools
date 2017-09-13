@@ -97,12 +97,11 @@ def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
     file_creation_time = datetime.fromtimestamp(creation_date(image_path))
     #generate MD5 hash
     file_hash = md5hash(image_path)
-    #generate UUID for image
-    #file_uuid = uuid.uuid4()
+    datetime_analyzed = datetime.now()
 
     reportWriter.writerow([\
     batch_id, batch_path, \
-    image_event_id, barcodes, image_classifications, closest_model, \
+    image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
     image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file])
 
 # set up argument parser
@@ -139,7 +138,7 @@ reportWriter = csv.writer(reportFile, delimiter = FIELD_DELIMITER, escapechar='#
 # write header
 reportWriter.writerow([\
     "batch_id", "batch_path", \
-    "image_event_id", "barcodes", "image_classifications", "closest_model",\
+    "image_event_id", "datetime_analyzed", "barcodes", "image_classifications", "closest_model",\
     "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid", "derived_from_file"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
 
@@ -149,8 +148,7 @@ directory_path = os.path.realpath(args["source"])
 files_analyzed = 0
 print('Scanning directory:', directory_path)
 #TODO change image search to use INPUT_FILE_TYPES
-#TODO sort glob results before processing, see https://stackoverflow.com/a/6774404
-for image_path in glob.glob(directory_path + "/*.JPG"): #this file search seems to be case sensitive
+for image_path in sorted(glob.glob(os.path.join(directory_path, '*.JPG')), key=os.path.getmtime): #this file search seems to be case sensitive
     files_analyzed += 1
     scan_start_time = datetime.now()
     image_event_id = str(uuid.uuid4())
