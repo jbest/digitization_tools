@@ -159,6 +159,9 @@ if args["models"]:
 if args["batch"]:
     batch_flags = args["batch"]
     print('Batch flags:', batch_flags)
+else:
+    batch_flags=None
+
 # Create file for results
 log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'
 # Test output path
