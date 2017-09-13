@@ -28,7 +28,7 @@ analysis_start_time = datetime.now()
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        if row['image_classifications']=='folder':
+        if 'folder' in row['image_classifications']:
             source_path = row['image_path']
             print (source_path)
             basename = os.path.basename(source_path)
