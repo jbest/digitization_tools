@@ -90,7 +90,7 @@ def casedpath(path):
     r = glob.glob(re.sub(r'([^:/\\])(?=[/\\]|$)', r'[\1]', path))
     return r and r[0] or path
 
-def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
+def log_file_data(batch_id=None, batch_path=None, batch_flags=None, closest_model=None,\
     image_event_id=None, barcodes=None, image_classifications=None, \
     image_path=None, file_uuid=None, derived_from_file=None):
     basename = os.path.basename(image_path)
@@ -107,20 +107,20 @@ def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
     else:
         barcodes = ''
     if closest_model:
-        closest_model = str()
+        closest_model = str(closest_model)
     else:
         closest_model = ''
 
     cur.execute(\
-        "INSERT INTO images (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
+        "INSERT INTO images (batch_id, batch_path, batch_flags, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
             image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file)\
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)", \
-        (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?)", \
+        (batch_id, batch_path, batch_flags, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
             image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file))
     conn.commit()
 
     reportWriter.writerow([\
-    batch_id, batch_path, \
+    batch_id, batch_path, batch_flags, \
     image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
     image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file])
 
@@ -130,6 +130,8 @@ ap.add_argument("-s", "--source", required=True, \
     help="Path to the directory that contains the images to be analyzed.")
 ap.add_argument("-m", "--models", required=False, \
     help="Path to the model file for folder identification through histogram analysis.")
+ap.add_argument("-b", "--batch", required=False, \
+    help="Flags written to batch_flags")
 ap.add_argument("-o", "--output", required=False, \
     help="Path to the directory where log file is written.")
 args = vars(ap.parse_args())
@@ -139,7 +141,7 @@ conn = lite.connect('workflow.db')
 cur = conn.cursor()
 try:
     cur.execute('''CREATE TABLE images (id INTEGER PRIMARY KEY, \
-        batch_id text, batch_path text, image_event_id text, datetime_analyzed text, \
+        batch_id text, batch_path text, batch_flags text, image_event_id text, datetime_analyzed text, \
         barcodes text, image_classifications text, closest_model text, \
         image_path text, basename text, file_name text, file_extension text, \
         file_creation_time text, file_hash text, file_uuid text, derived_from_file text)''')
@@ -154,6 +156,9 @@ if args["models"]:
     print('Loading model histograms.')
     models = pickle.load(open(args["models"], "rb"))
 
+if args["batch"]:
+    batch_flags = args["batch"]
+    print('Batch flags:', batch_flags)
 # Create file for results
 log_file_name = analysis_start_time.date().isoformat() + '_' + batch_id + '.csv'
 # Test output path
@@ -169,7 +174,7 @@ else:
 reportWriter = csv.writer(reportFile, delimiter=FIELD_DELIMITER, escapechar='#')
 # write header
 reportWriter.writerow([\
-    "batch_id", "batch_path", \
+    "batch_id", "batch_path", "batch_flags",\
     "image_event_id", "datetime_analyzed", "barcodes", "image_classifications", "closest_model",\
     "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid", "derived_from_file"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
@@ -248,16 +253,15 @@ for image_path in sorted(glob.glob(os.path.join(directory_path, '*.JPG')), key=o
             if 'specimen' in model_name:
                 image_classifications.append('ambiguous')
             print('best_match', best_match)
-    # TODO record scan finish time
+
     scan_end_time = datetime.now()
-    #print(scan_end_time)
     # TODO report analysis progress and ETA
 
-    #log CR2 data
     image_classifications_string = ",".join(image_classifications)
+    #log CR2 data
     if arch_file_path:
         arch_file_uuid = str(uuid.uuid4())
-        log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
+        log_file_data(batch_id=batch_id, batch_path=batch_path, batch_flags=batch_flags, closest_model=best_match,\
             image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications_string, \
             image_path=arch_file_path, file_uuid=arch_file_uuid)
     else:
@@ -265,7 +269,7 @@ for image_path in sorted(glob.glob(os.path.join(directory_path, '*.JPG')), key=o
 
     #log JPG data
     derivative_file_uuid = str(uuid.uuid4())
-    log_file_data(batch_id=batch_id, batch_path=batch_path, closest_model=best_match,\
+    log_file_data(batch_id=batch_id, batch_path=batch_path, batch_flags=batch_flags, closest_model=best_match,\
         image_event_id=image_event_id, barcodes=matching_barcodes, image_classifications=image_classifications_string, \
         image_path=image_path, file_uuid=derivative_file_uuid, derived_from_file=arch_file_uuid)
 
