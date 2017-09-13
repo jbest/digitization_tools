@@ -111,14 +111,12 @@ def log_file_data(batch_id=None, batch_path=None, closest_model=None,\
     else:
         closest_model = ''
 
-    #cur.execute("INSERT INTO images (batch_path, image_event_id, datetime_analyzed) VALUES ('test', 'test', 'test')")
-    #cur.execute("INSERT INTO images (batch_path, image_event_id, datetime_analyzed) VALUES (?, ?, ?)", (batch_path, image_event_id, datetime_analyzed))
     cur.execute(\
-        "INSERT INTO images (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file)\
+        "INSERT INTO images (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
+            image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file)\
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)", \
-        (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file))
-    #datetime_analyzed
-    #barcodes, image_classifications, closest_model, image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file
+        (batch_id, batch_path, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
+            image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file))
     conn.commit()
 
     reportWriter.writerow([\
