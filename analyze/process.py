@@ -60,8 +60,6 @@ with open(args["source"]) as csvfile:
         #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
         current_working_path = row['batch_path']
         image_classifications = row['image_classifications']
-        if 'folder' in image_classifications:
-            print("FOLDER")
         original_basename = row['basename']
         original_filename, original_file_extension = os.path.splitext(original_basename)
         # Get all barcodes
@@ -100,6 +98,8 @@ with open(args["source"]) as csvfile:
             #Assuming image is a folder 
             new_filename = None
             if model_name:
+                if 'ambiguous' in row['image_classifications']:
+                    model_name = 'folder'
                 new_filename = model_name + '_' + row['file_uuid']
                 new_basename = new_filename+original_file_extension
                 current_path = os.path.join(current_working_path, original_basename)
