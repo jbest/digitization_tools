@@ -44,10 +44,16 @@ with open(args["source"]) as csvfile:
     for row in reader:
         #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
         if args["path"]:
-            print(args["path"])
+            current_working_path = os.path.abspath(args["path"])
+            if not os.path.exists(current_working_path):
+                print('ERROR - path does not exist:', current_working_path)
+                exit()
+            #print(current_working_path)
         else:
-            print('No path')
-        current_working_path = row['batch_path']
+            current_working_path = row['batch_path']
+            if not os.path.exists(current_working_path):
+                print('ERROR - path does not exist:', current_working_path)
+                exit()
         image_classifications = row['image_classifications']
         original_basename = row['basename']
         original_filename, original_file_extension = os.path.splitext(original_basename)
@@ -56,7 +62,7 @@ with open(args["source"]) as csvfile:
         if barcodes_string:
             barcodes = ast.literal_eval(barcodes_string)
         else:
-        barcodes = None
+            barcodes = None
         model_match_string = None
         model_name = None
         model_match_string = row['closest_model']
