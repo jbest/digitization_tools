@@ -11,7 +11,7 @@ FIELD_DELIMITER = ',' # delimiter used in output CSV
 ap = argparse.ArgumentParser()
 ap.add_argument("-s", "--source", required=True, \
     help="Path to the CSV file.")
-ap.add_argument("-p", "--path", nargs='?', const=None, required=True, \
+ap.add_argument("-p", "--path", nargs='?', const=None, required=False, \
     help="Path used to replace the original batch path (when files are moved between analysis and processing).")
 ap.add_argument("-f", "--folder", required=False, \
     choices=['f', 'l'], \
