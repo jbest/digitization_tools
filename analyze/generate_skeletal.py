@@ -29,32 +29,58 @@ if not os.path.exists(dest_directory):
 
 analysis_start_time = datetime.now()
 
+FOLDER_IMAGE_EVENTS=[]
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
+
         if 'folder' in row['image_classifications']:
             #print(row['image_classifications'])
-            darwin_core = DWC_TEMPLATE.copy()
-            model_match_string = row['closest_model']
-            if model_match_string:
-                # assuming image is folder
-                model_match = ast.literal_eval(model_match_string)
-                [(model_name, model_similarity)] = model_match.items()
-                print (model_name)
-                if model_name == 'BRIT-VDB-AL':
-                    #print('"dwc:stateProvince":"Alabama"')
-                    darwin_core['dwc:stateProvince'] = 'Alabama'
-                elif model_name == 'BRIT-VDB-TN':
-                    #print('"dwc:stateProvince":"Tennessee"')
-                    darwin_core['dwc:stateProvince'] = 'Tennessee'
-                elif model_name == 'BRIT-VDB-NA':
-                    #print('"dwc:stateProvince":""')
-                    pass
+            image_event_id = row['image_event_id']
+            if image_event_id in FOLDER_IMAGE_EVENTS:
+                print('Folder image already processed:', image_event_id)
+            else:
+                FOLDER_IMAGE_EVENTS.append(image_event_id)
+                darwin_core = DWC_TEMPLATE.copy()
+                model_match_string = row['closest_model']
+                model_name = None
+                if model_match_string:
+                    # assuming image is folder
+                    image_event_id = row['image_event_id']
+                    model_match = ast.literal_eval(model_match_string)
+                    [(model_name, model_similarity)] = model_match.items()
+                    if 'ambiguous' in row['image_classifications']:
+                        model_name = 'folder'
+                    print (model_name)
+                    if model_name == 'BRIT-VDB-AL':
+                        #print('"dwc:stateProvince":"Alabama"')
+                        darwin_core['dwc:stateProvince'] = 'Alabama'
+                    elif model_name == 'BRIT-VDB-TN':
+                        #print('"dwc:stateProvince":"Tennessee"')
+                        darwin_core['dwc:stateProvince'] = 'Tennessee'
+                    elif model_name == 'BRIT-VDB-NA':
+                        #print('"dwc:stateProvince":""')
+                        pass
+                    else:
+                        #print('"dwc:stateProvince":""')
+                        pass
+                #print (darwin_core)
+                print (row['image_event_id'])
+                print (json.dumps(darwin_core, indent=4))
+
+                new_filename = None
+                if model_name:
+                    if 'ambiguous' in row['image_classifications']:
+                        model_name = 'folder'
+                    new_filename = model_name + '_' + image_event_id + '.JSON'
+                    with open(os.path.join(dest_directory, new_filename), 'w') as f:
+                        json.dump(darwin_core, f, ensure_ascii=False, indent=4)
                 else:
-                    #print('"dwc:stateProvince":""')
-                    pass
-            #print (darwin_core)
-            print (json.dumps(darwin_core, indent=4))
+                    #TODO handle this better
+                    print('No model name, no JSON file generated')
+                #json_file = model_name + '_' + row['file_uuid']
+
+
 
 analysis_end_time = datetime.now()
 print('Started:', analysis_start_time)
