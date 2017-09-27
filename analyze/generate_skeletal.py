@@ -30,18 +30,22 @@ if not os.path.exists(dest_directory):
 analysis_start_time = datetime.now()
 
 FOLDER_IMAGE_EVENTS=[]
+FOLDER_IMAGE_METADATA=[]
+batch_uuid = None
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-
+        batch_uuid = row['batch_id'] #This value will get reset for each row, assuming all rows are identical
         if 'folder' in row['image_classifications']:
-            #print(row['image_classifications'])
             image_event_id = row['image_event_id']
             if image_event_id in FOLDER_IMAGE_EVENTS:
-                print('Folder image already processed:', image_event_id)
+                #print('Folder image already processed:', image_event_id)
+                pass
             else:
                 FOLDER_IMAGE_EVENTS.append(image_event_id)
                 darwin_core = DWC_TEMPLATE.copy()
+                #darwin_core['image_name'] = row['basename']
+                darwin_core['image_name'] = row['file_name']
                 model_match_string = row['closest_model']
                 model_name = None
                 if model_match_string:
@@ -59,14 +63,14 @@ with open(args["source"]) as csvfile:
                         #print('"dwc:stateProvince":"Tennessee"')
                         darwin_core['dwc:stateProvince'] = 'Tennessee'
                     elif model_name == 'BRIT-VDB-NA':
-                        #print('"dwc:stateProvince":""')
                         pass
                     else:
-                        #print('"dwc:stateProvince":""')
                         pass
                 #print (darwin_core)
                 print (row['image_event_id'])
-                print (json.dumps(darwin_core, indent=4))
+                #print (json.dumps(darwin_core, indent=4))
+                darwin_core['image_event_id'] = row['image_event_id']
+                FOLDER_IMAGE_METADATA.append(darwin_core)
 
                 new_filename = None
                 if model_name:
@@ -80,7 +84,16 @@ with open(args["source"]) as csvfile:
                     print('No model name, no JSON file generated')
                 #json_file = model_name + '_' + row['file_uuid']
 
-
+# Write folder metadata for batch
+with open('folder_metadata.csv', 'w') as f:
+    fieldnames = [ 'image_name', 'dwc:country', 'dwc:stateProvince', 'dwc:family', 'dwc:genus', 'dwc:specificEpithet', 'image_event_id'] 
+    w = csv.DictWriter(f, fieldnames)
+    w.writeheader()
+    w.writerows(FOLDER_IMAGE_METADATA)
+"""
+for record in FOLDER_IMAGE_METADATA:
+    print(record)
+"""
 
 analysis_end_time = datetime.now()
 print('Started:', analysis_start_time)
