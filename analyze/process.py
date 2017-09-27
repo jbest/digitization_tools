@@ -99,7 +99,7 @@ with open(args["source"]) as csvfile:
             if model_name:
                 if 'ambiguous' in row['image_classifications']:
                     model_name = 'folder'
-                new_filename = model_name + '_' + row['file_uuid']
+                new_filename = model_name + '_' + row['image_event_id']
                 new_basename = new_filename+original_file_extension
                 current_path = os.path.join(current_working_path, original_basename)
                 new_path = os.path.join(current_working_path, new_basename)
