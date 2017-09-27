@@ -13,9 +13,17 @@ ap.add_argument("-s", "--source", required=True, \
     help="Path to the CSV file.")
 ap.add_argument("-p", "--path", nargs='?', const=None, required=False, \
     help="Path used to replace the original batch path (when files are moved between analysis and processing).")
+ap.add_argument("-r", "--rename", action='store_true', \
+    help="Switch to rename image files in place.")
+ap.add_argument("-m", "--metadata", action='store_true', \
+    help="Switch to generate metadata files.")
+ap.add_argument("-v", "--verbose", action='store_true', \
+    help="Switch to generate verbose messages.")
 ap.add_argument("-f", "--folder", required=False, \
     choices=['f', 'l'], \
     help="Folder sequence. 'f' - folder first, 'l' - folder last")
+#TODO add option to generate skeletal metadata in JSON and/or CSV
+#TODO add option to either do a test run or disable actual file renaming but still generate metadata
 #ap.add_argument("-o", "--output", required=False, \
 #    help="Path to the directory where folder images are copied.")
 args = vars(ap.parse_args())
@@ -35,6 +43,11 @@ folder_list = []
 local_path = os.path.dirname(os.path.realpath(__file__))
 analysis_start_time = datetime.now()
 
+if not args["rename"]:
+    print('NOTICE: file rename disabled, use -r to enable file renaming.')
+if not args["metadata"]:
+    print('NOTICE: metadata creation disabled, use -m to enable metadata creation.')
+
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
     initial_folder = folder()
@@ -42,7 +55,6 @@ with open(args["source"]) as csvfile:
     print(initial_folder)
     folder_list.append(initial_folder)
     for row in reader:
-        #TODO allow working path to be changed by user in case file folders are moved between analysis and processing
         if args["path"]:
             current_working_path = os.path.abspath(args["path"])
             if not os.path.exists(current_working_path):
@@ -84,14 +96,15 @@ with open(args["source"]) as csvfile:
             #print (new_basename)
             current_path = os.path.join(current_working_path, original_basename)
             new_path = os.path.join(current_working_path, new_basename)
-            if os.path.exists(current_path):
-                #print('Exists:', current_path)
-                #print('Change:', new_path)
-                if os.path.exists(new_path):
-                    print('ALERT - file exists, can not overwrite:')
-                    print(new_path)
-                else:
-                    os.rename(current_path, new_path)
+            #TODO generate metadata for specimen
+            # rename specimen image files
+            if args["rename"]:
+                if os.path.exists(current_path):
+                    if os.path.exists(new_path):
+                        print('ALERT - file exists, can not overwrite:')
+                        print(new_path)
+                    else:
+                        os.rename(current_path, new_path)
 
         else:
             #Assuming image is a folder 
@@ -103,20 +116,22 @@ with open(args["source"]) as csvfile:
                 new_basename = new_filename+original_file_extension
                 current_path = os.path.join(current_working_path, original_basename)
                 new_path = os.path.join(current_working_path, new_basename)
-                #print(new_basename)
-                if os.path.exists(current_path):
-                    #print('Exists:', current_path)
-                    #print('Change:', new_path)
-                    if os.path.exists(new_path):
-                        #TODO Log alerts
-                        print('ALERT - file exists, can not overwrite:')
-                        print(new_path)
+                # rename folder image files
+                if args["rename"]:
+                    if os.path.exists(current_path):
+                        #print('Exists:', current_path)
+                        #print('Change:', new_path)
+                        if os.path.exists(new_path):
+                            #TODO Log alerts
+                            print('ALERT - file exists, can not overwrite:')
+                            print(new_path)
+                        else:
+                            os.rename(current_path, new_path)
+                            current_folder.filename = new_filename
+                            #TODO write folder JSON file, or create record in memory to write later
                     else:
-                        os.rename(current_path, new_path)
-                        current_folder.filename = new_filename
-                        #TODO write folder JSON file, or create record in memory to write later
-                else:
-                    print('ALERT - original file not found')
+                        print('ALERT - original file not found')
+
 
 analysis_end_time = datetime.now()
 for folder in folder_list:
