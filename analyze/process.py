@@ -30,6 +30,7 @@ args = vars(ap.parse_args())
 
 DWC_TEMPLATE = {'dwc:country':'United States of America','dwc:stateProvince':'',\
     'dwc:family':'', 'dwc:genus':'', 'dwc:specificEpithet':''}
+FOLDER_IMAGE_EVENTS=[]
 
 class folder():
     def __init__(self, uuid=None, filename=None, model_name=None):
@@ -129,39 +130,44 @@ with open(args["source"]) as csvfile:
                         os.rename(current_path, new_path)
 
         else:
-            #Assuming image is a folder
-            model_match_string = row['closest_model']
-            if model_match_string:
-                model_match = ast.literal_eval(model_match_string)
-                [(model_name, model_similarity)] = model_match.items()
-                current_folder.model_name = model_name
-            #new_filename = None
-            if model_name:
-                if 'ambiguous' in row['image_classifications']:
-                    model_name = 'folder'
-                image_event_id = row['image_event_id']
-                new_filename = model_name + '_' + image_event_id
-                new_basename = new_filename+original_file_extension
-                current_path = os.path.join(current_working_path, original_basename)
-                new_path = os.path.join(current_working_path, new_basename)
-                print(compile_folder_metadata(model_name=model_name, image_event_id=image_event_id, original_filename=original_filename, new_filename=new_filename))
-                # rename folder image files
-                if args["rename"]:
-                    if os.path.exists(current_path):
-                        #print('Exists:', current_path)
-                        #print('Change:', new_path)
-                        if os.path.exists(new_path):
-                            #TODO Log alerts
-                            print('ALERT - file exists, can not overwrite:')
-                            print(new_path)
-                        else:
-                            os.rename(current_path, new_path)
-                            current_folder.filename = new_filename
-                            #TODO write folder JSON file, or create record in memory to write later
-                    else:
-                        print('ALERT - original file not found')
+            #Assuming image is a folder because no barcode
+            image_event_id = row['image_event_id']
+
+            if image_event_id in FOLDER_IMAGE_EVENTS:
+                print('Record already processed.')
             else:
-                print('ALERT - no model name, can not generate folder metadata')
+                FOLDER_IMAGE_EVENTS.append(image_event_id)
+                model_match_string = row['closest_model']
+                if model_match_string:
+                    model_match = ast.literal_eval(model_match_string)
+                    [(model_name, model_similarity)] = model_match.items()
+                    current_folder.model_name = model_name
+                #new_filename = None
+                if model_name:
+                    if 'ambiguous' in row['image_classifications']:
+                        model_name = 'folder'
+                    new_filename = model_name + '_' + image_event_id
+                    new_basename = new_filename+original_file_extension
+                    current_path = os.path.join(current_working_path, original_basename)
+                    new_path = os.path.join(current_working_path, new_basename)
+                    print(compile_folder_metadata(model_name=model_name, image_event_id=image_event_id, original_filename=original_filename, new_filename=new_filename))
+                    #TODO write folder JSON file, or create record in memory to write later
+                    # rename folder image files
+                    if args["rename"]:
+                        if os.path.exists(current_path):
+                            #print('Exists:', current_path)
+                            #print('Change:', new_path)
+                            if os.path.exists(new_path):
+                                #TODO Log alerts
+                                print('ALERT - file exists, can not overwrite:')
+                                print(new_path)
+                            else:
+                                os.rename(current_path, new_path)
+                                current_folder.filename = new_filename
+                        else:
+                            print('ALERT - original file not found')
+                else:
+                    print('ALERT - no model name, can not generate folder metadata')
 
 
 analysis_end_time = datetime.now()
