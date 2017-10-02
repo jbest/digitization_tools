@@ -42,32 +42,27 @@ class folder():
     def add_specimen(self, image_name=None, uuid=None, barcodes=None):
         self.specimens.append({'image_name':image_name, 'uuid':uuid})
 
-def compile_folder_metadata(model_match_string=None, image_event_id=None, original_basename=None, new_basename=None):
+def compile_folder_metadata(model_name=None, image_event_id=None, original_filename=None, new_filename=None):
     metadata = DWC_TEMPLATE.copy()
     metadata['image_event_id'] = image_event_id
-    metadata['original_basename'] = original_basename
-    metadata['new_basename'] = new_basename
+    metadata['original_filename'] = original_filename
+    metadata['new_filename'] = new_filename
     # Determine region based on best histogram match, standardize model names
     #TODO add terms for institution code and collection code
-    if model_match_string:
-        model_match = ast.literal_eval(model_match_string)
-        [(model_name, model_similarity)] = model_match.items()
-        print (model_name)
-        if model_name == 'BRIT-VDB-AL':
-            #print('"dwc:stateProvince":"Alabama"')
-            darwin_core['dwc:stateProvince'] = 'Alabama'
-        elif model_name == 'BRIT-VDB-TN':
-            #print('"dwc:stateProvince":"Tennessee"')
-            darwin_core['dwc:stateProvince'] = 'Tennessee'
-        elif model_name == 'BRIT-VDB-NA' or model_name = 'BRIT_VDB-NA': # Temp fix for incorrectly named model
-            model_name = 'BRIT-VDB-NA'
-            # don't populate DwC stateProvince because North America is not an appropriate value for this term
-        else:
-            model_name = 'folder'
+    if model_name == 'BRIT-VDB-AL':
+        #print('"dwc:stateProvince":"Alabama"')
+        metadata['dwc:stateProvince'] = 'Alabama'
+    elif model_name == 'BRIT-VDB-TN':
+        #print('"dwc:stateProvince":"Tennessee"')
+        metadata['dwc:stateProvince'] = 'Tennessee'
+    elif model_name == 'BRIT-VDB-NA' or model_name == 'BRIT_VDB-NA': # Temp fix for incorrectly named model
+        model_name = 'BRIT-VDB-NA'
+        # don't populate DwC stateProvince because North America is not an appropriate value for this term
     else:
         model_name = 'folder'
 
     metadata['model_name'] = model_name
+    #print(metadata)
     return metadata
 
 def save_folder_metadata():
@@ -109,14 +104,7 @@ with open(args["source"]) as csvfile:
             barcodes = ast.literal_eval(barcodes_string)
         else:
             barcodes = None
-        model_match_string = None
-        model_name = None
-        model_match_string = row['closest_model']
-        if model_match_string:
-            # assuming image is folder
-            model_match = ast.literal_eval(model_match_string)
-            [(model_name, model_similarity)] = model_match.items()
-            current_folder.model_name = model_name
+
         if barcodes:
             # Assumming all images with barcodes are specimens
             if len(barcodes) == 1:
@@ -141,15 +129,22 @@ with open(args["source"]) as csvfile:
                         os.rename(current_path, new_path)
 
         else:
-            #Assuming image is a folder 
-            new_filename = None
+            #Assuming image is a folder
+            model_match_string = row['closest_model']
+            if model_match_string:
+                model_match = ast.literal_eval(model_match_string)
+                [(model_name, model_similarity)] = model_match.items()
+                current_folder.model_name = model_name
+            #new_filename = None
             if model_name:
                 if 'ambiguous' in row['image_classifications']:
                     model_name = 'folder'
-                new_filename = model_name + '_' + row['image_event_id']
+                image_event_id = row['image_event_id']
+                new_filename = model_name + '_' + image_event_id
                 new_basename = new_filename+original_file_extension
                 current_path = os.path.join(current_working_path, original_basename)
                 new_path = os.path.join(current_working_path, new_basename)
+                print(compile_folder_metadata(model_name=model_name, image_event_id=image_event_id, original_filename=original_filename, new_filename=new_filename))
                 # rename folder image files
                 if args["rename"]:
                     if os.path.exists(current_path):
@@ -165,6 +160,8 @@ with open(args["source"]) as csvfile:
                             #TODO write folder JSON file, or create record in memory to write later
                     else:
                         print('ALERT - original file not found')
+            else:
+                print('ALERT - no model name, can not generate folder metadata')
 
 
 analysis_end_time = datetime.now()
