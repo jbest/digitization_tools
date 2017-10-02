@@ -30,6 +30,7 @@ args = vars(ap.parse_args())
 DWC_TEMPLATE = {'dwc:country':'United States of America','dwc:stateProvince':'',\
     'dwc:family':'', 'dwc:genus':'', 'dwc:specificEpithet':''}
 FOLDER_IMAGE_EVENTS=[]
+FOLDER_IMAGE_METADATA=[]
 
 """
 class folder():
@@ -142,7 +143,7 @@ with open(args["source"]) as csvfile:
                 if model_match_string:
                     model_match = ast.literal_eval(model_match_string)
                     [(model_name, model_similarity)] = model_match.items()
-                    current_folder.model_name = model_name
+                    #current_folder.model_name = model_name
                 #new_filename = None
                 if model_name:
                     if 'ambiguous' in row['image_classifications']:
@@ -151,7 +152,8 @@ with open(args["source"]) as csvfile:
                     new_basename = new_filename+original_file_extension
                     current_path = os.path.join(current_working_path, original_basename)
                     new_path = os.path.join(current_working_path, new_basename)
-                    print(compile_folder_metadata(model_name=model_name, image_event_id=image_event_id, original_filename=original_filename, new_filename=new_filename))
+                    folder_metadata = compile_folder_metadata(model_name=model_name, image_event_id=image_event_id, original_filename=original_filename, new_filename=new_filename)
+                    FOLDER_IMAGE_METADATA.append(folder_metadata)
                     #TODO write folder JSON file, or create record in memory to write later
                     # rename folder image files
                     if args["rename"]:
@@ -170,6 +172,14 @@ with open(args["source"]) as csvfile:
                 else:
                     print('ALERT - no model name, can not generate folder metadata')
 
+
+if args["metadata"]:
+    # Write folder metadata for batch
+    with open('folder_metadata.csv', 'w') as f:
+        fieldnames = ['dwc:country', 'dwc:stateProvince', 'dwc:family', 'dwc:genus', 'dwc:specificEpithet', 'image_event_id', 'original_filename', 'new_filename', 'model_name' ] 
+        w = csv.DictWriter(f, fieldnames)
+        w.writeheader()
+        w.writerows(FOLDER_IMAGE_METADATA)
 
 analysis_end_time = datetime.now()
 """
