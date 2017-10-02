@@ -23,7 +23,6 @@ ap.add_argument("-f", "--folder", required=False, \
     choices=['f', 'l'], \
     help="Folder sequence. 'f' - folder first, 'l' - folder last")
 #TODO add option to generate skeletal metadata in JSON and/or CSV
-#TODO add option to either do a test run or disable actual file renaming but still generate metadata
 #ap.add_argument("-o", "--output", required=False, \
 #    help="Path to the directory where folder images are copied.")
 args = vars(ap.parse_args())
@@ -32,6 +31,7 @@ DWC_TEMPLATE = {'dwc:country':'United States of America','dwc:stateProvince':'',
     'dwc:family':'', 'dwc:genus':'', 'dwc:specificEpithet':''}
 FOLDER_IMAGE_EVENTS=[]
 
+"""
 class folder():
     def __init__(self, uuid=None, filename=None, model_name=None):
         self.uuid = uuid
@@ -42,6 +42,7 @@ class folder():
         return 'Folder contains: ' + str(self.specimens)
     def add_specimen(self, image_name=None, uuid=None, barcodes=None):
         self.specimens.append({'image_name':image_name, 'uuid':uuid})
+"""
 
 def compile_folder_metadata(model_name=None, image_event_id=None, original_filename=None, new_filename=None):
     metadata = DWC_TEMPLATE.copy()
@@ -69,7 +70,7 @@ def compile_folder_metadata(model_name=None, image_event_id=None, original_filen
 def save_folder_metadata():
     pass
 
-folder_list = []
+#folder_list = [] # for folder objects
 local_path = os.path.dirname(os.path.realpath(__file__))
 analysis_start_time = datetime.now()
 
@@ -80,10 +81,10 @@ if not args["metadata"]:
 
 with open(args["source"]) as csvfile:
     reader = csv.DictReader(csvfile)
-    initial_folder = folder()
-    current_folder = initial_folder
-    print(initial_folder)
-    folder_list.append(initial_folder)
+    #initial_folder = folder()
+    #current_folder = initial_folder
+    #print(initial_folder)
+    #folder_list.append(initial_folder)
     for row in reader:
         if args["path"]:
             current_working_path = os.path.abspath(args["path"])
@@ -171,8 +172,10 @@ with open(args["source"]) as csvfile:
 
 
 analysis_end_time = datetime.now()
+"""
 for folder in folder_list:
     print(folder)
+"""
 print('Started:', analysis_start_time)
 print('Completed:', analysis_end_time)
 print('Duration:', analysis_end_time - analysis_start_time)
