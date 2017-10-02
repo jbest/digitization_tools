@@ -28,6 +28,9 @@ ap.add_argument("-f", "--folder", required=False, \
 #    help="Path to the directory where folder images are copied.")
 args = vars(ap.parse_args())
 
+DWC_TEMPLATE = {'dwc:country':'United States of America','dwc:stateProvince':'',\
+    'dwc:family':'', 'dwc:genus':'', 'dwc:specificEpithet':''}
+
 class folder():
     def __init__(self, uuid=None, filename=None, model_name=None):
         self.uuid = uuid
@@ -38,6 +41,37 @@ class folder():
         return 'Folder contains: ' + str(self.specimens)
     def add_specimen(self, image_name=None, uuid=None, barcodes=None):
         self.specimens.append({'image_name':image_name, 'uuid':uuid})
+
+def compile_folder_metadata(model_match_string=None, image_event_id=None, original_basename=None, new_basename=None):
+    metadata = DWC_TEMPLATE.copy()
+    metadata['image_event_id'] = image_event_id
+    metadata['original_basename'] = original_basename
+    metadata['new_basename'] = new_basename
+    # Determine region based on best histogram match, standardize model names
+    #TODO add terms for institution code and collection code
+    if model_match_string:
+        model_match = ast.literal_eval(model_match_string)
+        [(model_name, model_similarity)] = model_match.items()
+        print (model_name)
+        if model_name == 'BRIT-VDB-AL':
+            #print('"dwc:stateProvince":"Alabama"')
+            darwin_core['dwc:stateProvince'] = 'Alabama'
+        elif model_name == 'BRIT-VDB-TN':
+            #print('"dwc:stateProvince":"Tennessee"')
+            darwin_core['dwc:stateProvince'] = 'Tennessee'
+        elif model_name == 'BRIT-VDB-NA' or model_name = 'BRIT_VDB-NA': # Temp fix for incorrectly named model
+            model_name = 'BRIT-VDB-NA'
+            # don't populate DwC stateProvince because North America is not an appropriate value for this term
+        else:
+            model_name = 'folder'
+    else:
+        model_name = 'folder'
+
+    metadata['model_name'] = model_name
+    return metadata
+
+def save_folder_metadata():
+    pass
 
 folder_list = []
 local_path = os.path.dirname(os.path.realpath(__file__))
