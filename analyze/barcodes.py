@@ -6,7 +6,8 @@ BRIT_BARCODE_PATTERN = re.compile('^(BRIT)\d+$')
 BKL_BARCODE_PATTERN = re.compile('^(BKL)\d+$') #Brooklyn Botanic Garden
 NUMBERS_PATTERN = re.compile('^\d+$') # Numbers only
 # set up database
-conn = sqlite3.connect('workflow_full_test.db')
+database_file = 'workflow_full_test.db'
+conn = sqlite3.connect(database_file)
 
 with conn:
     conn.row_factory = sqlite3.Row
@@ -28,23 +29,26 @@ with conn:
                 bkl_match = BKL_BARCODE_PATTERN.match(barcode_value)
                 number_match = NUMBERS_PATTERN.match(barcode_value)
                 if brit_match:
-                    # make this value the primary catalog number
-                    pass
-                    #TODO add other barcodes to DwC otherCatalogNumbers
+                    catalogNumber = barcode_value
                 else:
                     # no BRIT barcode foud for primary catalog number
                     if bkl_match:
-                        pass
+                        otherCatalogNumbersList.append(barcode_value)
                         #print('BKL:', barcode_value, row['file_name'])
                     elif number_match:
-                        print('number:', barcode_value, row['file_name'])
+                        otherCatalogNumbersList.append(barcode_value)
+                        #print('number:', barcode_value, row['file_name'])
                     else:
-                        print('Not BRIT:', barcode_value, row['file_name'])
+                        #print('Not BRIT:', barcode_value, row['file_name'])
+                        #TODO flag record as bad number
+                        pass
                     """
                     number_match = NUMBERS_PATTERN.match(barcode_value)
                     if number_match:
                         print(barcode_value, row['file_name'])
                     """
+                    print(otherCatalogNumbersList, row['file_name'])
+            #print(catalogNumber, otherCatalogNumbersList)
         else:
             # No barcodes_string
             #print('Alert: No barcode')
