@@ -2,9 +2,9 @@ import sqlite3
 import re
 import ast
 
-BRIT_BARCODE_PATTERN = re.compile('(BRIT)\d+') 
-BKL_BARCODE_PATTERN = re.compile('(BKL)\d+') #Brooklyn Botanic Garden
-NUMBERS_PATTERN = re.compile('\d+') 
+BRIT_BARCODE_PATTERN = re.compile('^(BRIT)\d+$') 
+BKL_BARCODE_PATTERN = re.compile('^(BKL)\d+$') #Brooklyn Botanic Garden
+NUMBERS_PATTERN = re.compile('^\d+$') # Numbers only
 # set up database
 conn = sqlite3.connect('workflow_full_test.db')
 
@@ -17,6 +17,8 @@ with conn:
  
     for row in rows:
         #print(row['barcodes'])
+        catalogNumber = None
+        otherCatalogNumbersList = []
         barcodes_string = row['barcodes']
         if barcodes_string:
             barcodes = ast.literal_eval(barcodes_string)
@@ -42,7 +44,11 @@ with conn:
                     number_match = NUMBERS_PATTERN.match(barcode_value)
                     if number_match:
                         print(barcode_value, row['file_name'])
-                        """
+                    """
+        else:
+            # No barcodes_string
+            #print('Alert: No barcode')
+            pass
         #print(row)
 
 
