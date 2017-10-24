@@ -91,7 +91,15 @@ with open(args["source"]) as csvfile:
                     print('ALERT - file exists, can not overwrite:')
                     print(new_path)
                 else:
-                    os.rename(current_path, new_path)
+                    try:
+                        os.rename(current_path, new_path)
+                    except OSError:
+                        # Possible problem with character in new filename
+                        print('ALERT - OSError. new_path:', new_path )
+                    except:
+                        print("Unexpected error:", sys.exc_info()[0])
+                        raise
+
 
         else:
             #Assuming image is a folder 
