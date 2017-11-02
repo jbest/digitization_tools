@@ -6,6 +6,8 @@ import shutil
 
 HERBARIUM_PREFIX = 'BRIT'
 FOLDER_INCREMENT = 1000
+files_analyzed = 0
+files_sorted = 0
 
 # set up argument parser
 ap = argparse.ArgumentParser()
@@ -16,20 +18,23 @@ ap.add_argument("-p", "--pattern", required=True, \
 args = vars(ap.parse_args())
 
 def sort_file(source=None, destination=None):
+    global files_sorted
     if os.path.exists(destination):
         print('Filename exists, can not move:', destination)
         return False
     else:
         shutil.move(source, destination)
+        files_sorted += 1
         return True
 
 #iterate JPG files in directory passed from args
 source_directory_path = os.path.realpath(args["directory"])
 pattern = args["pattern"]
-files_analyzed = 0
+
 print('Scanning directory:', source_directory_path, 'for files matching', pattern )
 #TODO change image search to use INPUT_FILE_TYPES
 for source_path in glob.glob(os.path.join(source_directory_path, pattern)): #this file search seems to be case sensitive
+    global files_analyzed
     files_analyzed += 1
     basename = os.path.basename(source_path)
     if basename.startswith(HERBARIUM_PREFIX):
@@ -55,3 +60,4 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern)): #thi
         print('Ignoring', basename)
 print('Sort complete.')
 print('Encountered files:', files_analyzed)
+print('Sorted files:', files_sorted)
