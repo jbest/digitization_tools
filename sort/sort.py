@@ -15,6 +15,14 @@ ap.add_argument("-p", "--pattern", required=True, \
     help="Pattern of filenames to be sorted.")
 args = vars(ap.parse_args())
 
+def sort_file(source=None, destination=None):
+    if os.path.exists(destination):
+        print('Filename exists, can not move:', destination)
+        return False
+    else:
+        shutil.move(source, destination)
+        return True
+
 #iterate JPG files in directory passed from args
 directory_path = os.path.realpath(args["directory"])
 pattern = args["pattern"]
@@ -33,15 +41,23 @@ for image_path in glob.glob(os.path.join(directory_path, pattern)): #this file s
             destination_path = os.path.join(directory_path, destination_folder)
             if os.path.isdir(destination_path):
                 destination_file = os.path.join(destination_path, basename)
-                shutil.move(image_path, destination_file)
+                #TODO make function for moving files
+                if os.path.exists(destination_file):
+                    print('Filename exists, can not move:', destination_file)
+                else:
+                    shutil.move(image_path, destination_file)
             else:
                 print('Create folder: ' + destination_path)
                 os.mkdir(destination_path)
                 destination_file = os.path.join(destination_path, basename)
-                shutil.move(image_path, destination_file)
+                if os.path.exists(destination_file):
+                    print('Filename exists, can not move:', destination_file)
+                else:
+                    shutil.move(image_path, destination_file)
 
         except ValueError:
             print('Can not parse', file_name)
     else:
         print('Ignoring', basename)
 print('Sort complete.')
+print('Encountered files:', files_analyzed)
