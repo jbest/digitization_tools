@@ -32,8 +32,8 @@ source_directory_path = os.path.realpath(args["directory"])
 pattern = args["pattern"]
 
 print('Scanning directory:', source_directory_path, 'for files matching', pattern )
-#TODO change image search to use INPUT_FILE_TYPES
-for source_path in glob.glob(os.path.join(source_directory_path, pattern)): #this file search seems to be case sensitive
+
+for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
     global files_analyzed
     files_analyzed += 1
     basename = os.path.basename(source_path)
@@ -44,14 +44,13 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern)): #thi
             accession_number = int(accession_id)
             destination_folder_name = 'BRIT' + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
             destination_directory_path = os.path.join(source_directory_path, destination_folder_name)
+            destination_file_path = os.path.join(destination_directory_path, basename)
             # Check if destination directory exists
             if os.path.isdir(destination_directory_path):
-                destination_file_path = os.path.join(destination_directory_path, basename)
                 sort_file(source=source_path, destination=destination_file_path)
             else:
                 print('Creating folder: ' + destination_directory_path)
                 os.mkdir(destination_directory_path)
-                destination_file_path = os.path.join(destination_directory_path, basename)
                 sort_file(source=source_path, destination=destination_file_path)
 
         except ValueError:
