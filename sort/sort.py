@@ -1,6 +1,5 @@
 import argparse
 import glob
-import re
 import os
 import shutil
 
@@ -14,7 +13,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--directory", required=True, \
     help="Path to the directory that contains the images to be sorted.")
 ap.add_argument("-p", "--pattern", required=True, \
-    help="Pattern of filenames to be sorted.")
+    help="Pattern of filenames to be sorted - eg '*.jpg'")
 args = vars(ap.parse_args())
 
 def sort_file(source=None, destination=None):
@@ -31,10 +30,9 @@ def sort_file(source=None, destination=None):
 source_directory_path = os.path.realpath(args["directory"])
 pattern = args["pattern"]
 
-print('Scanning directory:', source_directory_path, 'for files matching', pattern )
+print('Scanning directory:', source_directory_path, 'for files matching', pattern)
 
 for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
-    global files_analyzed
     files_analyzed += 1
     basename = os.path.basename(source_path)
     if basename.startswith(HERBARIUM_PREFIX):
