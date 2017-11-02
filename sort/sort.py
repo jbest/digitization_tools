@@ -24,36 +24,30 @@ def sort_file(source=None, destination=None):
         return True
 
 #iterate JPG files in directory passed from args
-directory_path = os.path.realpath(args["directory"])
+source_directory_path = os.path.realpath(args["directory"])
 pattern = args["pattern"]
 files_analyzed = 0
-print('Scanning directory:', directory_path, 'for files matching', pattern )
+print('Scanning directory:', source_directory_path, 'for files matching', pattern )
 #TODO change image search to use INPUT_FILE_TYPES
-for image_path in glob.glob(os.path.join(directory_path, pattern)): #this file search seems to be case sensitive
+for source_path in glob.glob(os.path.join(source_directory_path, pattern)): #this file search seems to be case sensitive
     files_analyzed += 1
-    basename = os.path.basename(image_path)
+    basename = os.path.basename(source_path)
     if basename.startswith(HERBARIUM_PREFIX):
         file_name, file_extension = os.path.splitext(basename)
         accession_id = file_name[len(HERBARIUM_PREFIX):]
         try:
             accession_number = int(accession_id)
-            destination_folder = 'BRIT' + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
-            destination_path = os.path.join(directory_path, destination_folder)
-            if os.path.isdir(destination_path):
-                destination_file = os.path.join(destination_path, basename)
-                #TODO make function for moving files
-                if os.path.exists(destination_file):
-                    print('Filename exists, can not move:', destination_file)
-                else:
-                    shutil.move(image_path, destination_file)
+            destination_folder_name = 'BRIT' + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
+            destination_directory_path = os.path.join(source_directory_path, destination_folder_name)
+            # Check if destination directory exists
+            if os.path.isdir(destination_directory_path):
+                destination_file_path = os.path.join(destination_directory_path, basename)
+                sort_file(source=source_path, destination=destination_file_path)
             else:
-                print('Create folder: ' + destination_path)
-                os.mkdir(destination_path)
-                destination_file = os.path.join(destination_path, basename)
-                if os.path.exists(destination_file):
-                    print('Filename exists, can not move:', destination_file)
-                else:
-                    shutil.move(image_path, destination_file)
+                print('Creating folder: ' + destination_directory_path)
+                os.mkdir(destination_directory_path)
+                destination_file_path = os.path.join(destination_directory_path, basename)
+                sort_file(source=source_path, destination=destination_file_path)
 
         except ValueError:
             print('Can not parse', file_name)
