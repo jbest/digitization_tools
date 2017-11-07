@@ -166,7 +166,7 @@ with open(args["source"]) as csvfile:
                                 print(new_path)
                             else:
                                 os.rename(current_path, new_path)
-                                current_folder.filename = new_filename
+                                #current_folder.filename = new_filename
                         else:
                             print('ALERT - original file not found')
                 else:
