@@ -3,8 +3,8 @@ import glob
 import os
 import shutil
 
-HERBARIUM_PREFIX = 'BRIT'
-FOLDER_INCREMENT = 1000
+DEFAULT_HERBARIUM_PREFIX = 'BRIT'
+DEFAULT_FOLDER_INCREMENT = 1000
 files_analyzed = 0
 files_sorted = 0
 
@@ -14,7 +14,14 @@ ap.add_argument("-d", "--directory", required=True, \
     help="Path to the directory that contains the images to be sorted.")
 ap.add_argument("-p", "--pattern", required=True, \
     help="Pattern of filenames to be sorted - eg '*.jpg'")
+ap.add_argument("-c", "--catalog_prefix", default=DEFAULT_HERBARIUM_PREFIX, \
+    help="Prefix string for catalog numbers. Default is BRIT.")
+ap.add_argument("-i", "--increment", default=DEFAULT_FOLDER_INCREMENT, \
+    help="Increment for catalog numbers.")
 args = vars(ap.parse_args())
+
+HERBARIUM_PREFIX = args["catalog_prefix"]
+FOLDER_INCREMENT = int(args["increment"])
 
 def sort_file(source=None, destination=None):
     global files_sorted
