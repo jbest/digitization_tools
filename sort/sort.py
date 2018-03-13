@@ -47,7 +47,7 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
         accession_id = file_name[len(HERBARIUM_PREFIX):]
         try:
             accession_number = int(accession_id)
-            destination_folder_name = 'BRIT' + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
+            destination_folder_name = HERBARIUM_PREFIX + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
             destination_directory_path = os.path.join(source_directory_path, destination_folder_name)
             destination_file_path = os.path.join(destination_directory_path, basename)
             # Check if destination directory exists
