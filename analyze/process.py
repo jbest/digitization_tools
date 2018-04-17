@@ -95,7 +95,7 @@ with open(args["source"]) as csvfile:
                         os.rename(current_path, new_path)
                     except OSError:
                         # Possible problem with character in new filename
-                        print('ALERT - OSError. new_path:', new_path )
+                        print('ALERT - OSError. new_path:', new_path, 'current_path:', current_path )
                     except:
                         print("Unexpected error:", sys.exc_info()[0])
                         raise
