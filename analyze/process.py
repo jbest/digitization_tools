@@ -136,6 +136,7 @@ with open(args["source"]) as csvfile:
             image_event_id = row['image_event_id']
 
             if image_event_id in FOLDER_IMAGE_EVENTS:
+                #FIXME This is causing JPG files to not be renamed
                 print('Record already processed.')
             else:
                 FOLDER_IMAGE_EVENTS.append(image_event_id)
