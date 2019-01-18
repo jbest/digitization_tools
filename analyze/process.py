@@ -121,9 +121,40 @@ with open(args["source"]) as csvfile:
             #print (new_basename)
             current_path = os.path.join(current_working_path, original_basename)
             new_path = os.path.join(current_working_path, new_basename)
+<<<<<<< HEAD
             #TODO generate metadata for specimen
             # rename specimen image files
             if args["rename"]:
+=======
+            if os.path.exists(current_path):
+                #print('Exists:', current_path)
+                #print('Change:', new_path)
+                if os.path.exists(new_path):
+                    print('ALERT - file exists, can not overwrite:')
+                    print(new_path)
+                else:
+                    try:
+                        os.rename(current_path, new_path)
+                    except OSError:
+                        # Possible problem with character in new filename
+                        print('ALERT - OSError. new_path:', new_path, 'current_path:', current_path )
+                    except:
+                        print("Unexpected error:", sys.exc_info()[0])
+                        raise
+
+
+        else:
+            #Assuming image is a folder 
+            new_filename = None
+            if model_name:
+                if 'ambiguous' in row['image_classifications']:
+                    model_name = 'folder'
+                new_filename = model_name + '_' + row['image_event_id']
+                new_basename = new_filename+original_file_extension
+                current_path = os.path.join(current_working_path, original_basename)
+                new_path = os.path.join(current_working_path, new_basename)
+                #print(new_basename)
+>>>>>>> e3c7b0e59998987dcd0fa49b166f7cc8d18e5598
                 if os.path.exists(current_path):
                     if os.path.exists(new_path):
                         print('ALERT - file exists, can not overwrite:')

@@ -1,0 +1,12 @@
+Need to catch this problem with corrupt file:
+
+Scanning directory: /media/jbest/BRIT-4TB/VDB/station1/2015-09-16_jlippert_problems
+Image file: BRIT-2015_09_16-S1-00311.JPG
+Archive file: NOT FOUND
+Traceback (most recent call last):
+  File "analyze.py", line 231, in <module>
+    barcodes = decode(Image.open(image_path))
+  File "/media/data1/BRIT_git/digitization_tools/analyze/env/lib/python3.4/site-packages/PIL/Image.py", line 2519, in open
+    % (filename if filename else fp))
+OSError: cannot identify image file '/media/jbest/BRIT-4TB/VDB/station1/2015-09-16_jlippert_problems/BRIT-2015_09_16-S1-00311.JPG'
+(env)jbest@bdi2:~/Desktop/BRIT_git/digitization_tools/analyze$ 

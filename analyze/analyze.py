@@ -23,6 +23,7 @@ ARCHIVE_FILE_TYPES = ('.CR2', '.cr2', '.RAW', '.raw')
 ACCEPTED_SYMBOLOGIES = ['CODE39']
 #TODO add accepted barcode string patterns
 FIELD_DELIMITER = ',' # delimiter used in output CSV
+PROJECT_IDS = ['TX','ANHC','VDB','TEST']
 
 def md5hash(fname):
     # from https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
@@ -112,15 +113,15 @@ def log_file_data(batch_id=None, batch_path=None, batch_flags=None, closest_mode
         closest_model = ''
 
     cur.execute(\
-        "INSERT INTO images (batch_id, batch_path, batch_flags, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
+        "INSERT INTO images (batch_id, batch_path, batch_flags, project_id, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
             image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file)\
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?)", \
-        (batch_id, batch_path, batch_flags, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?)", \
+        (batch_id, batch_path, batch_flags, project_id, image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
             image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file))
     conn.commit()
 
     reportWriter.writerow([\
-    batch_id, batch_path, batch_flags, \
+    batch_id, batch_path, batch_flags, project_id, \
     image_event_id, datetime_analyzed, barcodes, image_classifications, closest_model, \
     image_path, basename, file_name, file_extension, file_creation_time, file_hash, file_uuid, derived_from_file])
 
@@ -128,6 +129,8 @@ def log_file_data(batch_id=None, batch_path=None, batch_flags=None, closest_mode
 ap = argparse.ArgumentParser()
 ap.add_argument("-s", "--source", required=True, \
     help="Path to the directory that contains the images to be analyzed.")
+ap.add_argument("-p", "--project", required=True, choices=PROJECT_IDS, \
+    help="Project name for filtering in database")
 ap.add_argument("-m", "--models", required=False, \
     help="Path to the model file for folder identification through histogram analysis.")
 ap.add_argument("-b", "--batch", required=False, \
@@ -141,7 +144,8 @@ conn = lite.connect('workflow.db')
 cur = conn.cursor()
 try:
     cur.execute('''CREATE TABLE images (id INTEGER PRIMARY KEY, \
-        batch_id text, batch_path text, batch_flags text, image_event_id text, datetime_analyzed text, \
+        batch_id text, batch_path text, batch_flags text, project_id text, \
+        image_event_id text, datetime_analyzed text, \
         barcodes text, image_classifications text, closest_model text, \
         image_path text, basename text, file_name text, file_extension text, \
         file_creation_time text, file_hash text, file_uuid text, derived_from_file text)''')
@@ -151,6 +155,7 @@ except lite.Error as e:
 analysis_start_time = datetime.now()
 batch_id = str(uuid.uuid4())
 batch_path = os.path.realpath(args["source"])
+project_id = args["project"]
 # load models from pickle file
 if args["models"]:
     print('Loading model histograms.')
@@ -177,7 +182,7 @@ else:
 reportWriter = csv.writer(reportFile, delimiter=FIELD_DELIMITER, escapechar='#')
 # write header
 reportWriter.writerow([\
-    "batch_id", "batch_path", "batch_flags",\
+    "batch_id", "batch_path", "batch_flags", "project_id", \
     "image_event_id", "datetime_analyzed", "barcodes", "image_classifications", "closest_model",\
     "image_path", "basename", "file_name", "file_extension", "file_creation_time", "file_hash", "file_uuid", "derived_from_file"])
     #"ImagePath", "DirPath" , "BaseName", "FileName", "FileExtension", "Code", "CodeType" , "Scan time"])
