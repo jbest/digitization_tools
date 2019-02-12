@@ -1,6 +1,10 @@
 # Slightly adapted by Jason Best (jbest@brit.org) based on work of GitHub user shahriman
 # Original at:
 # https://gist.github.com/shahriman/3289170
+"""
+Another adaption is at https://github.com/chihsuan/detect-blurry-video/blob/master/detect_blurry_image.py
+The original at https://gist.github.com/shahriman/3289170 is no longer available.
+"""
 """ This is an implementation of the paper found here: http://www.cs.cmu.edu/~htong/pdf/ICME04_tong.pdf """
 
 """
