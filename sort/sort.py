@@ -5,6 +5,7 @@ import shutil
 
 DEFAULT_HERBARIUM_PREFIX = 'BRIT'
 DEFAULT_FOLDER_INCREMENT = 1000
+DEFAULT_NUMBER_PAD = 7
 files_analyzed = 0
 files_sorted = 0
 
@@ -17,11 +18,14 @@ ap.add_argument("-p", "--pattern", required=True, \
 ap.add_argument("-c", "--catalog_prefix", default=DEFAULT_HERBARIUM_PREFIX, \
     help="Prefix string for catalog numbers. Default is BRIT.")
 ap.add_argument("-i", "--increment", default=DEFAULT_FOLDER_INCREMENT, \
-    help="Increment for catalog numbers.")
+    help="Increment for folder numbers.")
+ap.add_argument("-l", "--length", default=DEFAULT_NUMBER_PAD, \
+    help="Length for folder numbers, pre-padded with 0.")
 args = vars(ap.parse_args())
 
 HERBARIUM_PREFIX = args["catalog_prefix"]
 FOLDER_INCREMENT = int(args["increment"])
+PAD = int(args["length"])
 
 def sort_file(source=None, destination=None):
     global files_sorted
@@ -33,7 +37,7 @@ def sort_file(source=None, destination=None):
         files_sorted += 1
         return True
 
-#iterate JPG files in directory passed from args
+#iterate files matching pattern in directory passed from args
 source_directory_path = os.path.realpath(args["directory"])
 pattern = args["pattern"]
 
@@ -47,7 +51,10 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
         accession_id = file_name[len(HERBARIUM_PREFIX):]
         try:
             accession_number = int(accession_id)
-            destination_folder_name = HERBARIUM_PREFIX + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
+            folder_number = int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT)
+            padded_folder_number = str(folder_number).zfill(PAD)
+            #destination_folder_name = HERBARIUM_PREFIX + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
+            destination_folder_name = HERBARIUM_PREFIX + padded_folder_number
             destination_directory_path = os.path.join(source_directory_path, destination_folder_name)
             destination_file_path = os.path.join(destination_directory_path, basename)
             # Check if destination directory exists
