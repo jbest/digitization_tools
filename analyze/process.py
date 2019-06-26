@@ -121,11 +121,10 @@ with open(args["source"]) as csvfile:
             #print (new_basename)
             current_path = os.path.join(current_working_path, original_basename)
             new_path = os.path.join(current_working_path, new_basename)
-<<<<<<< HEAD
             #TODO generate metadata for specimen
             # rename specimen image files
-            if args["rename"]:
-=======
+            #if args["rename"]:
+
             if os.path.exists(current_path):
                 #print('Exists:', current_path)
                 #print('Change:', new_path)
@@ -154,7 +153,6 @@ with open(args["source"]) as csvfile:
                 current_path = os.path.join(current_working_path, original_basename)
                 new_path = os.path.join(current_working_path, new_basename)
                 #print(new_basename)
->>>>>>> e3c7b0e59998987dcd0fa49b166f7cc8d18e5598
                 if os.path.exists(current_path):
                     if os.path.exists(new_path):
                         print('ALERT - file exists, can not overwrite:')
