@@ -140,8 +140,7 @@ with open(args["source"]) as csvfile:
                     except:
                         print("Unexpected error:", sys.exc_info()[0])
                         raise
-
-
+            """
         else:
             #Assuming image is a folder 
             new_filename = None
@@ -159,7 +158,7 @@ with open(args["source"]) as csvfile:
                         print(new_path)
                     else:
                         os.rename(current_path, new_path)
-
+            """
         else:
             #Assuming image is a folder because no barcode
             image_event_id = row['image_event_id']
