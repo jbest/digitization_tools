@@ -173,6 +173,8 @@ with open(args["source"]) as csvfile:
                     model_match = ast.literal_eval(model_match_string)
                     [(model_name, model_similarity)] = model_match.items()
                     #current_folder.model_name = model_name
+                else:
+                    model_name = None
                 #new_filename = None
                 if model_name:
                     if 'ambiguous' in row['image_classifications']:

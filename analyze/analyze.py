@@ -23,7 +23,7 @@ ARCHIVE_FILE_TYPES = ('.CR2', '.cr2', '.RAW', '.raw')
 ACCEPTED_SYMBOLOGIES = ['CODE39']
 #TODO add accepted barcode string patterns
 FIELD_DELIMITER = ',' # delimiter used in output CSV
-PROJECT_IDS = ['TX','ANHC','VDB','TEST']
+PROJECT_IDS = ['TX','ANHC','VDB','TEST', 'TCN-Ferns']
 
 def md5hash(fname):
     # from https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
