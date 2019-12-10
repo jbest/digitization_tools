@@ -14,6 +14,8 @@ verbose = False
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--directory", required=True, \
     help="Path to the directory that contains the images to be sorted.")
+ap.add_argument("-o", "--output_directory", required=False, default=None,\
+    help="Path to an existing directory where sorted files and directories will be written.")
 ap.add_argument("-p", "--pattern", required=True, \
     help="Pattern of filenames to be sorted - eg '*.jpg'")
 ap.add_argument("-c", "--catalog_prefix", default=DEFAULT_HERBARIUM_PREFIX, \
@@ -46,6 +48,15 @@ def sort_file(source=None, destination=None):
 #iterate files matching pattern in directory passed from args
 source_directory_path = os.path.realpath(args["directory"])
 pattern = args["pattern"]
+output_directory = args["output_directory"]
+if output_directory:
+    # test to ensure output_directory exists
+    if os.path.isdir(output_directory):
+        print('output_directory:', output_directory)
+    else:
+        print(f'ERROR: directory {output_directory} does not exist.')
+        print('Terminating script.')
+        quit()
 if args['verbose']:
     verbose = True
     print("Verbose report...")
@@ -66,7 +77,12 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
             # https://stackoverflow.com/a/339013
             #destination_folder_name = HERBARIUM_PREFIX + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
             destination_folder_name = HERBARIUM_PREFIX + padded_folder_number
-            destination_directory_path = os.path.join(source_directory_path, destination_folder_name)
+            if output_directory:
+                output_directory_path = os.path.realpath(output_directory)
+                destination_directory_path = os.path.join(output_directory_path, destination_folder_name)
+            else:
+                # no output_directory specified, using source directory
+                destination_directory_path = os.path.join(source_directory_path, destination_folder_name)
             destination_file_path = os.path.join(destination_directory_path, basename)
             # Check if destination directory exists
             if os.path.isdir(destination_directory_path):
@@ -81,7 +97,7 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
             print('Can not parse', file_name)
     else:
         if verbose:
-            print('Ignoring', basename)
+            print(f'Ignoring {basename} - does not start with {HERBARIUM_PREFIX}.')
 print('Sort complete.')
 print('Encountered files:', files_analyzed)
 print('Sorted files:', files_sorted)
