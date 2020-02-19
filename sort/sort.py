@@ -14,10 +14,12 @@ verbose = False
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--directory", required=True, \
     help="Path to the directory that contains the images to be sorted.")
-ap.add_argument("-o", "--output_directory", required=False, default=None,\
+ap.add_argument("-o", "--output_directory", required=True, default=None,\
     help="Path to an existing directory where sorted files and directories will be written.")
 ap.add_argument("-p", "--pattern", required=True, \
     help="Pattern of filenames to be sorted - eg '*.jpg'")
+ap.add_argument("-r", "--recursive", action="store_true", \
+    help="Recurse sub-directories")
 ap.add_argument("-c", "--catalog_prefix", default=DEFAULT_HERBARIUM_PREFIX, \
     help="Prefix string for catalog numbers. Default is BRIT.")
 ap.add_argument("-i", "--increment", default=DEFAULT_FOLDER_INCREMENT, \
@@ -31,12 +33,13 @@ args = vars(ap.parse_args())
 HERBARIUM_PREFIX = args["catalog_prefix"]
 FOLDER_INCREMENT = int(args["increment"])
 PAD = int(args["length"])
+recurse_subdirectories = args["recursive"]
 
 def sort_file(source=None, destination=None):
     global files_sorted
     if os.path.exists(destination):
         if verbose:
-            print('Filename exists, can not move:', destination)
+            print('Filename exists, cannot move:', destination)
         return False
     else:
         shutil.move(source, destination)
@@ -61,9 +64,14 @@ if args['verbose']:
     verbose = True
     print("Verbose report...")
 
+if args['verbose']:
+    verbose = True
+    print("Verbose report...")
+
+
 print('Scanning directory:', source_directory_path, 'for files matching', pattern)
 
-for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
+for source_path in glob.glob(os.path.join(source_directory_path, pattern), recursive=recurse_subdirectories):
     files_analyzed += 1
     basename = os.path.basename(source_path)
     if basename.startswith(HERBARIUM_PREFIX):
@@ -94,7 +102,7 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern)):
                 sort_file(source=source_path, destination=destination_file_path)
 
         except ValueError:
-            print('Can not parse', file_name)
+            print('Cannot parse', file_name)
     else:
         if verbose:
             print(f'Ignoring {basename} - does not start with {HERBARIUM_PREFIX}.')
