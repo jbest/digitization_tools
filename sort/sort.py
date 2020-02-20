@@ -29,7 +29,7 @@ ap.add_argument("-l", "--length", default=DEFAULT_NUMBER_PAD, \
     help="Length for folder numbers, pre-padded with 0.")
 ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
-ap.add_argument("-n", "--dry-run", action="store_true", \
+ap.add_argument("-n", "--dry_run", action="store_true", \
     help="Detailed output.")
 args = vars(ap.parse_args())
 
@@ -37,17 +37,23 @@ HERBARIUM_PREFIX = args["catalog_prefix"]
 FOLDER_INCREMENT = int(args["increment"])
 PAD = int(args["length"])
 recurse_subdirectories = args["recursive"]
+dry_run = args["dry_run"]
 
 def sort_file(source=None, destination=None):
     global files_sorted
     if destination.exists():
+        if dry_run:
+            print('DRY-RUN: Filename exists, cannot move:', destination)
         if verbose:
             print('Filename exists, cannot move:', destination)
         return False
     else:
-        shutil.move(source, destination)
-        if verbose:
-            print('Moved:', destination)
+        if dry_run:
+            print('DRY-RUN: Moved:', destination)
+        else:
+            shutil.move(source, destination)
+            if verbose:
+                print('Moved:', destination)
         files_sorted += 1
         return True
 
@@ -70,6 +76,8 @@ if args['verbose']:
     verbose = True
     print("Verbose report...")
 
+if dry_run:
+    print('DRY-RUN: starting dry run:')
 print('Scanning directory:', source_directory_path, 'for files matching', pattern)
 
 if recurse_subdirectories:
@@ -120,3 +128,5 @@ for matching_path in path_matches:
 print('Sort complete.')
 print('Encountered files:', files_analyzed)
 print('Sorted files:', files_sorted)
+if dry_run:
+    print('DRY-RUN: ending dry run.')
