@@ -71,15 +71,21 @@ if args['verbose']:
 
 print('Scanning directory:', source_directory_path, 'for files matching', pattern)
 
-for matching_path in source_directory_path.rglob('*.jpg'):
+if recurse_subdirectories:
+    path_matches = source_directory_path.rglob('*.jpg')
+else:
+    path_matches = source_directory_path.glob('*.jpg')
+
+#for matching_path in source_directory_path.rglob('*.jpg'):
+for matching_path in path_matches:
     files_analyzed += 1
     #basename = os.path.basename(source_path)
     basename = matching_path.name
     if basename.startswith(HERBARIUM_PREFIX):
         file_name = matching_path.stem
         file_extension = matching_path.suffix
-        print('file_name:', file_name)
-        print('file_extension:', file_extension)
+        #print('file_name:', file_name)
+        #print('file_extension:', file_extension)
         accession_id = file_name[len(HERBARIUM_PREFIX):]
         try:
             accession_number = int(accession_id)
