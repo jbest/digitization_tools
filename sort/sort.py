@@ -29,13 +29,14 @@ ap.add_argument("-l", "--length", default=DEFAULT_NUMBER_PAD, \
     help="Length for folder numbers, pre-padded with 0.")
 ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
+ap.add_argument("-n", "--dry-run", action="store_true", \
+    help="Detailed output.")
 args = vars(ap.parse_args())
 
 HERBARIUM_PREFIX = args["catalog_prefix"]
 FOLDER_INCREMENT = int(args["increment"])
 PAD = int(args["length"])
 recurse_subdirectories = args["recursive"]
-print("recurse_subdirectories", recurse_subdirectories)
 
 def sort_file(source=None, destination=None):
     global files_sorted
