@@ -1,7 +1,8 @@
 import argparse
-import glob
-import os
+#import glob
+#import os
 import shutil
+from pathlib import Path
 
 DEFAULT_HERBARIUM_PREFIX = 'BRIT'
 DEFAULT_FOLDER_INCREMENT = 1000
@@ -34,10 +35,11 @@ HERBARIUM_PREFIX = args["catalog_prefix"]
 FOLDER_INCREMENT = int(args["increment"])
 PAD = int(args["length"])
 recurse_subdirectories = args["recursive"]
+print("recurse_subdirectories", recurse_subdirectories)
 
 def sort_file(source=None, destination=None):
     global files_sorted
-    if os.path.exists(destination):
+    if destination.exists():
         if verbose:
             print('Filename exists, cannot move:', destination)
         return False
@@ -49,33 +51,35 @@ def sort_file(source=None, destination=None):
         return True
 
 #iterate files matching pattern in directory passed from args
-source_directory_path = os.path.realpath(args["directory"])
+#source_directory_path = os.path.realpath(args["directory"])
+source_directory_path = Path(args["directory"])
 pattern = args["pattern"]
 output_directory = args["output_directory"]
-if output_directory:
+output_directory_path = Path(output_directory)
+if output_directory_path:
     # test to ensure output_directory exists
-    if os.path.isdir(output_directory):
-        print('output_directory:', output_directory)
+    #if os.path.isdir(output_directory):
+    if output_directory_path.is_dir():
+        print('output_directory_path:', output_directory_path)
     else:
-        print(f'ERROR: directory {output_directory} does not exist.')
+        print(f'ERROR: directory {output_directory_path} does not exist.')
         print('Terminating script.')
         quit()
 if args['verbose']:
     verbose = True
     print("Verbose report...")
 
-if args['verbose']:
-    verbose = True
-    print("Verbose report...")
-
-
 print('Scanning directory:', source_directory_path, 'for files matching', pattern)
 
-for source_path in glob.glob(os.path.join(source_directory_path, pattern), recursive=recurse_subdirectories):
+for matching_path in source_directory_path.rglob('*.jpg'):
     files_analyzed += 1
-    basename = os.path.basename(source_path)
+    #basename = os.path.basename(source_path)
+    basename = matching_path.name
     if basename.startswith(HERBARIUM_PREFIX):
-        file_name, file_extension = os.path.splitext(basename)
+        file_name = matching_path.stem
+        file_extension = matching_path.suffix
+        print('file_name:', file_name)
+        print('file_extension:', file_extension)
         accession_id = file_name[len(HERBARIUM_PREFIX):]
         try:
             accession_number = int(accession_id)
@@ -86,20 +90,20 @@ for source_path in glob.glob(os.path.join(source_directory_path, pattern), recur
             #destination_folder_name = HERBARIUM_PREFIX + str(int(accession_number//FOLDER_INCREMENT*FOLDER_INCREMENT))
             destination_folder_name = HERBARIUM_PREFIX + padded_folder_number
             if output_directory:
-                output_directory_path = os.path.realpath(output_directory)
-                destination_directory_path = os.path.join(output_directory_path, destination_folder_name)
+                output_directory_path = Path(output_directory)
+                destination_directory_path = output_directory_path.joinpath(destination_folder_name)
             else:
                 # no output_directory specified, using source directory
-                destination_directory_path = os.path.join(source_directory_path, destination_folder_name)
-            destination_file_path = os.path.join(destination_directory_path, basename)
+                destination_directory_path = source_directory_path.joinpath(destination_folder_name)
+            destination_file_path = destination_directory_path.joinpath(basename)
             # Check if destination directory exists
-            if os.path.isdir(destination_directory_path):
-                sort_file(source=source_path, destination=destination_file_path)
+            if destination_directory_path.is_dir():
+                sort_file(source=matching_path, destination=destination_file_path)
             else:
                 if verbose:
                     print('Creating folder: ' + destination_directory_path)
-                os.mkdir(destination_directory_path)
-                sort_file(source=source_path, destination=destination_file_path)
+                destination_directory_path.mkdir()
+                sort_file(source=matching_path, destination=destination_file_path)
 
         except ValueError:
             print('Cannot parse', file_name)
