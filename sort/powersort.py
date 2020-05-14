@@ -18,6 +18,8 @@ ap.add_argument("-c", "--config", required=True, \
     help="Path to the configuration file to be used for processing images.")
 ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
+ap.add_argument("-n", "--dry-run", action="store_true", \
+    help="Simulate the sort process without moving files.")
 args = vars(ap.parse_args())
 
 #HERBARIUM_PREFIX = args["catalog_prefix"]
@@ -31,13 +33,16 @@ config.read('TEST.ini')
 #print(config.sections())
 #print(config['Files']['web_image_destination_path'])
 
-
+# Set up paths and patterns
 source_directory_path = Path(config['Files']['staging_path'])
 archive_ext = config['Files']['archive_extension']
 archive_ext_pattern = '*.' + archive_ext
-web_ext = config['Files']['web_extension']
 archive_output_path = Path(config['Files']['archive_image_destination_path'])
-#web_output_path = Path(config['Files']['web_image_destination_path'])
+web_ext = config['Files']['web_extension']
+web_ext_pattern = '*.' + web_ext
+web_output_path = Path(config['Files']['web_image_destination_path'])
+
+# Check existence of source path
 if source_directory_path:
     # test to ensure output_directory exists
     if source_directory_path.is_dir():
@@ -46,16 +51,27 @@ if source_directory_path:
         print(f'ERROR: directory {source_directory_path} does not exist.')
         print('Terminating script.')
         quit()
-print('Scanning directory:', source_directory_path, 'for files matching', archive_ext_pattern)
 
+
+# Start scanning source directory
 #testing
 recurse_subdirectories = True
 
+# Scan for archival files
+print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
 if recurse_subdirectories:
-    path_matches = source_directory_path.rglob(archive_ext_pattern)
+    archival_path_matches = source_directory_path.rglob(archive_ext_pattern)
 else:
-    path_matches = source_directory_path.glob(archive_ext_pattern)
+    archival_path_matches = source_directory_path.glob(archive_ext_pattern)
 
-for matching_path in path_matches:
+for matching_path in archival_path_matches:
     print(matching_path)
+
+# Scan for web files
+print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
+if recurse_subdirectories:
+    web_path_matches = source_directory_path.rglob(web_ext_pattern)
+else:
+    web_path_matches = source_directory_path.glob(web_ext_pattern)
+
 
