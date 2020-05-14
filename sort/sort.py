@@ -81,9 +81,9 @@ if dry_run:
 print('Scanning directory:', source_directory_path, 'for files matching', pattern)
 
 if recurse_subdirectories:
-    path_matches = source_directory_path.rglob('*.jpg')
+    path_matches = source_directory_path.rglob(pattern)
 else:
-    path_matches = source_directory_path.glob('*.jpg')
+    path_matches = source_directory_path.glob(pattern)
 
 #for matching_path in source_directory_path.rglob('*.jpg'):
 for matching_path in path_matches:
