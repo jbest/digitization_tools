@@ -33,26 +33,28 @@ config.read('TEST.ini')
 
 
 source_directory_path = Path(config['Files']['staging_path'])
-archive_ext_pattern = config['Files']['archive_extension']
-web_ext_pattern = config['Files']['web_extension']
+archive_ext = config['Files']['archive_extension']
+archive_ext_pattern = '*.' + archive_ext
+web_ext = config['Files']['web_extension']
 archive_output_path = Path(config['Files']['archive_image_destination_path'])
 #web_output_path = Path(config['Files']['web_image_destination_path'])
-if archive_output_path:
+if source_directory_path:
     # test to ensure output_directory exists
-    if archive_output_path.is_dir():
-        print('archive_output_path:', archive_output_path)
+    if source_directory_path.is_dir():
+        print('source_directory_path:', source_directory_path)
     else:
-        print(f'ERROR: directory {archive_output_path} does not exist.')
+        print(f'ERROR: directory {source_directory_path} does not exist.')
         print('Terminating script.')
         quit()
-print('Scanning directory:', archive_output_path, 'for files matching', archive_ext_pattern)
+print('Scanning directory:', source_directory_path, 'for files matching', archive_ext_pattern)
 
 #testing
 recurse_subdirectories = True
+
 if recurse_subdirectories:
-    path_matches = archive_output_path.rglob(archive_ext_pattern)
+    path_matches = source_directory_path.rglob(archive_ext_pattern)
 else:
-    path_matches = archive_output_path.glob(archive_ext_pattern)
+    path_matches = source_directory_path.glob(archive_ext_pattern)
 
 for matching_path in path_matches:
     print(matching_path)
