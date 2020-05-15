@@ -18,20 +18,42 @@ ap.add_argument("-c", "--config", required=True, \
     help="Path to the configuration file to be used for processing images.")
 ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
-ap.add_argument("-n", "--dry-run", action="store_true", \
+ap.add_argument("-n", "--dry_run", action="store_true", \
     help="Simulate the sort process without moving files.")
 args = vars(ap.parse_args())
 
-#HERBARIUM_PREFIX = args["catalog_prefix"]
-#FOLDER_INCREMENT = int(args["increment"])
-#PAD = int(args["length"])
-
-
 config = configparser.ConfigParser()
-config.read('TEST.ini')
+config_file = args["config"]
+config.read(config_file)
 # see for lists: https://stackoverflow.com/a/8048529/560798
 #print(config.sections())
 #print(config['Files']['web_image_destination_path'])
+
+dry_run = args["dry_run"]
+
+def move_file(source=None, destination=None):
+    #global files_sorted
+    if destination.exists():
+        if dry_run:
+            print('DRY-RUN: Filename exists, cannot move:', destination)
+        if verbose:
+            print('Filename exists, cannot move:', destination)
+        #TODO change to exception
+        return False
+    else:
+        if dry_run:
+            print('DRY-RUN: Moved:', destination)
+        else:
+            #shutil.move(source, destination)
+            if verbose:
+                print('Moved:', destination)
+        #files_sorted += 1
+        return True
+
+# Get collection parameters and defaults
+collection_prefix = config['Collection']['collection_prefix']
+folder_increment = config['Files']['folder_increment']
+# Institution code?
 
 # Set up paths and patterns
 source_directory_path = Path(config['Files']['staging_path'])
@@ -52,9 +74,10 @@ if source_directory_path:
         print('Terminating script.')
         quit()
 
+# Check ability to write to web directory
+# Check ability to write to archive directory
 
 # Start scanning source directory
-#testing
 recurse_subdirectories = True
 
 # Scan for archival files
@@ -73,5 +96,16 @@ if recurse_subdirectories:
     web_path_matches = source_directory_path.rglob(web_ext_pattern)
 else:
     web_path_matches = source_directory_path.glob(web_ext_pattern)
+
+# TODO make regex pattern for extracting accession_id 
+accession_id_pattern = '^BRIT(\d*)'
+for matching_path in web_path_matches:
+    print(matching_path)
+    file_name = matching_path.stem
+    file_extension = matching_path.suffix
+    #print('file_name:', file_name)
+    #print('file_extension:', file_extension)
+    accession_id = file_name[len(collection_prefix):]
+    print(accession_id)
 
 
