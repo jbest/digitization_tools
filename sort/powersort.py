@@ -98,7 +98,11 @@ else:
     archival_path_matches = source_directory_path.glob(archive_ext_pattern)
 
 for matching_path in archival_path_matches:
-    print(matching_path)
+    #print(matching_path)
+    basename = matching_path.name
+    file_name = matching_path.stem
+    file_extension = matching_path.suffix
+    print(basename)
 
 # Scan for web files
 print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
@@ -107,11 +111,11 @@ if recurse_subdirectories:
 else:
     web_path_matches = source_directory_path.glob(web_ext_pattern)
 
-# TODO make regex pattern for extracting accession_id 
+# TODO make regex pattern for extracting accession_id, make configurable in config file
 accession_id_pattern = re.compile('BRIT(\d*)')
-#p = re.compile('[a-z]+')
+
 for matching_path in web_path_matches:
-    print(matching_path)
+    #print(matching_path)
     basename = matching_path.name
     file_name = matching_path.stem
     file_extension = matching_path.suffix
