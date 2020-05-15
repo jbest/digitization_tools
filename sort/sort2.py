@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 import re
 import csv
+import datetime
 
 DEFAULT_HERBARIUM_PREFIX = 'BRIT'
 DEFAULT_FOLDER_INCREMENT = 1000
@@ -50,7 +51,7 @@ dry_run = args["dry_run"]
 def sort_file(source=None, destination=None):
     global files_sorted
     if destination.exists():
-        logwriter.writerow(['test_time', source, destination, 'ERROR: file exists'])
+        logwriter.writerow([datetime.datetime.now(), source, destination, 'ERROR: file exists'])
         if dry_run:
             print('DRY-RUN: Filename exists, cannot move:', destination)
         if verbose:
@@ -59,11 +60,11 @@ def sort_file(source=None, destination=None):
     else:
         if dry_run:
             print('DRY-RUN: Moved:', destination)
-            logwriter.writerow(['test_time', source, destination, 'DRY-RUN: moved'])
+            logwriter.writerow([datetime.datetime.now(), source, destination, 'DRY-RUN: moved'])
         else:
             # temporary disable move
-            #shutil.move(source, destination)
-            logwriter.writerow(['test_time', source, destination, 'moved'])
+            shutil.move(source, destination)
+            logwriter.writerow([datetime.datetime.now(), source, destination, 'moved'])
             if verbose:
                 print('Moved:', destination)
         files_sorted += 1
@@ -103,8 +104,8 @@ pattern_string = HERBARIUM_PREFIX + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 # Create log file
 # TODO Make sure log file can be written and is unique
-# TODO Use filename specified in args
-with open('log_out.csv', 'w', newline='') as csvfile:
+log_file_path = args["action_log"]
+with open(log_file_path, 'w', newline='') as csvfile:
     logwriter = csv.writer(csvfile)
     # write header
     logwriter.writerow(['timestamp', 'source', 'destination', 'action'])
@@ -142,7 +143,12 @@ with open('log_out.csv', 'w', newline='') as csvfile:
                 else:
                     if verbose:
                         print('Creating folder: ' + destination_directory_path)
-                    destination_directory_path.mkdir()
+                    if dry_run:
+                        # log, don't create
+                        logwriter.writerow([datetime.datetime.now(), '', destination_directory_path, 'DRY-RUN: created directory'])
+                    else:
+                        destination_directory_path.mkdir()
+                        logwriter.writerow([datetime.datetime.now(), '', destination_directory_path, 'created directory'])
                     sort_file(source=matching_path, destination=destination_file_path)
 
             except ValueError:
