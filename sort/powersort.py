@@ -1,6 +1,7 @@
 import configparser
 from pathlib import Path
 import argparse
+import re
 #import glob
 #import os
 #import shutil
@@ -30,6 +31,7 @@ config.read(config_file)
 #print(config['Files']['web_image_destination_path'])
 
 dry_run = args["dry_run"]
+PAD = DEFAULT_NUMBER_PAD
 
 def move_file(source=None, destination=None):
     #global files_sorted
@@ -53,6 +55,14 @@ def move_file(source=None, destination=None):
 # Get collection parameters and defaults
 collection_prefix = config['Collection']['collection_prefix']
 folder_increment = config['Files']['folder_increment']
+print(f'folder_increment: {folder_increment}')
+try:
+    folder_increment = int(folder_increment)
+except:
+    print(f'folder_increment: {folder_increment} can not be converted to integer.')
+    quit()
+
+
 # Institution code?
 
 # Set up paths and patterns
@@ -98,14 +108,29 @@ else:
     web_path_matches = source_directory_path.glob(web_ext_pattern)
 
 # TODO make regex pattern for extracting accession_id 
-accession_id_pattern = '^BRIT(\d*)'
+accession_id_pattern = re.compile('BRIT(\d*)')
+#p = re.compile('[a-z]+')
 for matching_path in web_path_matches:
     print(matching_path)
+    basename = matching_path.name
     file_name = matching_path.stem
     file_extension = matching_path.suffix
     #print('file_name:', file_name)
     #print('file_extension:', file_extension)
-    accession_id = file_name[len(collection_prefix):]
-    print(accession_id)
+    #accession_id = file_name[len(collection_prefix):]
+    #print(accession_id)
+    match = accession_id_pattern.match(file_name)
+    if match:
+        #print(match.group(1))
+        accession_number = int(match.group(1))
+        print(accession_number)
+        folder_number = int(accession_number//folder_increment*folder_increment)
+        padded_folder_number = str(folder_number).zfill(PAD)
+        # zfill may be deprecated in future? Look into string formatting with fill
+        # https://stackoverflow.com/a/339013
+        destination_folder_name = collection_prefix + padded_folder_number
+        print(f'Destination folder:{destination_folder_name}')
+    else:
+        print(f'Unable to match: {basename}')
 
 
