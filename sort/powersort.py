@@ -69,6 +69,10 @@ except:
 source_directory_path = Path(config['Files']['staging_path'])
 archive_ext = config['Files']['archive_extension']
 archive_ext_pattern = '*.' + archive_ext
+# Testing multiple patterns
+archive_patterns = config.items( "Archive_patterns" )
+for key, pattern in archive_patterns:
+    print(f'key: {key}, pattern: {pattern}')
 archive_output_path = Path(config['Files']['archive_image_destination_path'])
 web_ext = config['Files']['web_extension']
 web_ext_pattern = '*.' + web_ext
@@ -112,7 +116,9 @@ else:
     web_path_matches = source_directory_path.glob(web_ext_pattern)
 
 # TODO make regex pattern for extracting accession_id, make configurable in config file
-accession_id_pattern = re.compile('BRIT(\d*)')
+#accession_id_pattern = re.compile('BRIT(\d*)')
+pattern_string = collection_prefix + '(\d*)'
+accession_id_pattern = re.compile(pattern_string)
 
 for matching_path in web_path_matches:
     #print(matching_path)
@@ -123,17 +129,20 @@ for matching_path in web_path_matches:
     #print('file_extension:', file_extension)
     #accession_id = file_name[len(collection_prefix):]
     #print(accession_id)
-    match = accession_id_pattern.match(file_name)
-    if match:
+    accession_match = accession_id_pattern.match(file_name)
+    if accession_match:
         #print(match.group(1))
-        accession_number = int(match.group(1))
-        print(accession_number)
+        accession_number = int(accession_match.group(1))
+        print(f'file: {basename}, number: {accession_number}')
         folder_number = int(accession_number//folder_increment*folder_increment)
         padded_folder_number = str(folder_number).zfill(PAD)
         # zfill may be deprecated in future? Look into string formatting with fill
         # https://stackoverflow.com/a/339013
         destination_folder_name = collection_prefix + padded_folder_number
         print(f'Destination folder:{destination_folder_name}')
+        # web destination path
+        web_destination_path = web_output_path.joinpath(destination_folder_name)
+        print(f'web_destination_path:{web_destination_path}')
     else:
         print(f'Unable to match: {basename}')
 
