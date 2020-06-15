@@ -30,7 +30,7 @@ ap.add_argument("-l", "--length", default=DEFAULT_NUMBER_PAD, \
 ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
 ap.add_argument("-n", "--dry_run", action="store_true", \
-    help="Detailed output.")
+    help="No files moved, no directories created.")
 args = vars(ap.parse_args())
 
 HERBARIUM_PREFIX = args["catalog_prefix"]
