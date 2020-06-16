@@ -51,7 +51,6 @@ def move_file(source=None, destination=None):
         else:
             # Temporarily disabled move
             #shutil.move(source, destination)
-            print('MOVING')
             status = 'File moved'
             if verbose:
                 print('Moved:', destination)
@@ -151,7 +150,7 @@ for matching_path in web_path_matches:
         destination_folder_name = collection_prefix + padded_folder_number
         #print(f'Destination folder:{destination_folder_name}')
         # web destination path
-        web_destination_path = web_output_path.joinpath(destination_folder_name)
+        web_destination_path = web_output_path.joinpath(destination_folder_name, basename)
         #print(f'web_destination_path:{web_destination_path}')
         move_success, move_status = move_file(source=matching_path, destination=web_destination_path)
         print(move_success, move_status)
