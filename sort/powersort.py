@@ -4,7 +4,7 @@ import argparse
 import re
 #import glob
 #import os
-#import shutil
+import shutil
 
 #DEFAULT_HERBARIUM_PREFIX = 'BRIT'
 DEFAULT_FOLDER_INCREMENT = 1000
@@ -34,7 +34,8 @@ dry_run = args["dry_run"]
 verbose = args["verbose"]
 PAD = DEFAULT_NUMBER_PAD
 
-def move_file(source=None, destination=None):
+def move_file(source=None, destination_directory=None, filename=None):
+    destination = destination_directory.joinpath(filename)
     if destination.exists():
         if dry_run:
             print('DRY-RUN: Filename exists, cannot move:', destination)
@@ -47,16 +48,18 @@ def move_file(source=None, destination=None):
     else:
         if dry_run:
             print('DRY-RUN: Moved:', destination)
-            status = 'DRY-RUN - not moved'
+            status = 'DRY-RUN - simulated move'
         else:
+            # Create directory path if it doesn't exist
+            destination_directory.mkdir(parents=True, exist_ok=True)
             # Temporarily disabled move
-            #shutil.move(source, destination)
+            shutil.move(source, destination)
             status = 'File moved'
             if verbose:
                 print('Moved:', destination)
         # files_sorted += 1
         move_success = True       
-        return True, status
+        return move_success, status
 
 # Get collection parameters and defaults
 collection_prefix = config['Collection']['collection_prefix']
@@ -150,10 +153,10 @@ for matching_path in web_path_matches:
         destination_folder_name = collection_prefix + padded_folder_number
         #print(f'Destination folder:{destination_folder_name}')
         # web destination path
-        web_destination_path = web_output_path.joinpath(destination_folder_name, basename)
+        web_destination_path = web_output_path.joinpath(destination_folder_name)
         #print(f'web_destination_path:{web_destination_path}')
-        move_success, move_status = move_file(source=matching_path, destination=web_destination_path)
-        print(move_success, move_status)
+        move_success, move_status = move_file(source=matching_path, destination_directory=web_destination_path, filename=basename)
+        #print(move_success, move_status)
     else:
         print(f'Unable to match: {basename}')
 
