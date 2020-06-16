@@ -20,7 +20,7 @@ ap.add_argument("-c", "--config", required=True, \
 ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
 ap.add_argument("-n", "--dry_run", action="store_true", \
-    help="Simulate the sort process without moving files.")
+    help="Simulate the sort process without moving files or creating directories.")
 args = vars(ap.parse_args())
 
 config = configparser.ConfigParser()
@@ -31,31 +31,39 @@ config.read(config_file)
 #print(config['Files']['web_image_destination_path'])
 
 dry_run = args["dry_run"]
+verbose = args["verbose"]
 PAD = DEFAULT_NUMBER_PAD
 
 def move_file(source=None, destination=None):
-    #global files_sorted
     if destination.exists():
         if dry_run:
             print('DRY-RUN: Filename exists, cannot move:', destination)
         if verbose:
             print('Filename exists, cannot move:', destination)
         #TODO change to exception
-        return False
+        move_success = False
+        status = 'Filename exists'
+        return move_success, status
     else:
         if dry_run:
             print('DRY-RUN: Moved:', destination)
+            status = 'DRY-RUN - not moved'
         else:
+            # Temporarily disabled move
             #shutil.move(source, destination)
+            print('MOVING')
+            status = 'File moved'
             if verbose:
                 print('Moved:', destination)
-        #files_sorted += 1
-        return True
+        # files_sorted += 1
+        move_success = True       
+        return True, status
 
 # Get collection parameters and defaults
 collection_prefix = config['Collection']['collection_prefix']
 folder_increment = config['Files']['folder_increment']
 print(f'folder_increment: {folder_increment}')
+
 try:
     folder_increment = int(folder_increment)
 except:
@@ -70,7 +78,7 @@ source_directory_path = Path(config['Files']['staging_path'])
 archive_ext = config['Files']['archive_extension']
 archive_ext_pattern = '*.' + archive_ext
 # Testing multiple patterns
-archive_patterns = config.items( "Archive_patterns" )
+archive_patterns = config.items("Archive_patterns")
 for key, pattern in archive_patterns:
     print(f'key: {key}, pattern: {pattern}')
 archive_output_path = Path(config['Files']['archive_image_destination_path'])
@@ -88,8 +96,8 @@ if source_directory_path:
         print('Terminating script.')
         quit()
 
-# Check ability to write to web directory
-# Check ability to write to archive directory
+# TODO Check ability to write to web directory
+# TODO Check ability to write to archive directory
 
 # Start scanning source directory
 recurse_subdirectories = True
@@ -97,12 +105,14 @@ recurse_subdirectories = True
 # Scan for archival files
 print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
 if recurse_subdirectories:
+    # Using rglob
     archival_path_matches = source_directory_path.rglob(archive_ext_pattern)
 else:
+    # Using glob
     archival_path_matches = source_directory_path.glob(archive_ext_pattern)
 
+# TEST show matches
 for matching_path in archival_path_matches:
-    #print(matching_path)
     basename = matching_path.name
     file_name = matching_path.stem
     file_extension = matching_path.suffix
@@ -131,18 +141,20 @@ for matching_path in web_path_matches:
     #print(accession_id)
     accession_match = accession_id_pattern.match(file_name)
     if accession_match:
-        #print(match.group(1))
+        # Extract accession number
         accession_number = int(accession_match.group(1))
-        print(f'file: {basename}, number: {accession_number}')
+        #print(f'file: {basename}, number: {accession_number}')
         folder_number = int(accession_number//folder_increment*folder_increment)
         padded_folder_number = str(folder_number).zfill(PAD)
         # zfill may be deprecated in future? Look into string formatting with fill
         # https://stackoverflow.com/a/339013
         destination_folder_name = collection_prefix + padded_folder_number
-        print(f'Destination folder:{destination_folder_name}')
+        #print(f'Destination folder:{destination_folder_name}')
         # web destination path
         web_destination_path = web_output_path.joinpath(destination_folder_name)
-        print(f'web_destination_path:{web_destination_path}')
+        #print(f'web_destination_path:{web_destination_path}')
+        move_success, move_status = move_file(source=matching_path, destination=web_destination_path)
+        print(move_success, move_status)
     else:
         print(f'Unable to match: {basename}')
 
