@@ -52,6 +52,7 @@ def move_file(source=None, destination_directory=None, filename=None):
         else:
             # Create directory path if it doesn't exist
             destination_directory.mkdir(parents=True, exist_ok=True)
+            #TODO Log creation of directory? If so, will need to force exception and only log when no exception
             # Temporarily disabled move
             shutil.move(source, destination)
             status = 'File moved'
@@ -61,10 +62,32 @@ def move_file(source=None, destination_directory=None, filename=None):
         move_success = True       
         return move_success, status
 
+def sort_files(path_matches=None, output_path=None):
+    for matching_path in path_matches:
+        #print(matching_path)
+        basename = matching_path.name
+        file_name = matching_path.stem
+        file_extension = matching_path.suffix
+        accession_match = accession_id_pattern.match(file_name)
+        if accession_match:
+            # Extract accession number
+            accession_number = int(accession_match.group(1))
+            folder_number = int(accession_number//folder_increment*folder_increment)
+            padded_folder_number = str(folder_number).zfill(PAD)
+            # zfill may be deprecated in future? Look into string formatting with fill
+            # https://stackoverflow.com/a/339013
+            destination_folder_name = collection_prefix + padded_folder_number
+            # destination path
+            destination_path = output_path.joinpath(destination_folder_name)
+            move_success, move_status = move_file(source=matching_path, destination_directory=destination_path, filename=basename)
+        else:
+            print(f'Unable to match: {basename}')
+
 # Get collection parameters and defaults
 collection_prefix = config['Collection']['collection_prefix']
 folder_increment = config['Files']['folder_increment']
 print(f'folder_increment: {folder_increment}')
+# TODO Get number pad
 
 try:
     folder_increment = int(folder_increment)
@@ -104,34 +127,43 @@ if source_directory_path:
 # Start scanning source directory
 recurse_subdirectories = True
 
-# Scan for archival files
-print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
-if recurse_subdirectories:
-    # Using rglob
-    archival_path_matches = source_directory_path.rglob(archive_ext_pattern)
-else:
-    # Using glob
-    archival_path_matches = source_directory_path.glob(archive_ext_pattern)
-
-# TEST show matches
-for matching_path in archival_path_matches:
-    basename = matching_path.name
-    file_name = matching_path.stem
-    file_extension = matching_path.suffix
-    print(basename)
-
-# Scan for web files
-print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
-if recurse_subdirectories:
-    web_path_matches = source_directory_path.rglob(web_ext_pattern)
-else:
-    web_path_matches = source_directory_path.glob(web_ext_pattern)
-
 # TODO make regex pattern for extracting accession_id, make configurable in config file
 #accession_id_pattern = re.compile('BRIT(\d*)')
 pattern_string = collection_prefix + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 
+# Scan for archival files
+print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
+if recurse_subdirectories:
+    # Using rglob
+    archive_path_matches = source_directory_path.rglob(archive_ext_pattern)
+else:
+    # Using glob
+    archive_path_matches = source_directory_path.glob(archive_ext_pattern)
+
+# TEST show matches
+"""
+for matching_path in archival_path_matches:
+    basename = matching_path.name
+    file_name = matching_path.stem
+    file_extension = matching_path.suffix
+    print(basename)
+"""
+# sort archive files
+sort_files(path_matches=archive_path_matches, output_path=web_output_path)
+
+# Scan for web files
+print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
+if recurse_subdirectories:
+    web_path_matches = source_directory_path.rglob(web_ext_pattern)
+else:    web_path_matches = source_directory_path.glob(web_ext_pattern)
+
+
+# sort web files
+sort_files(path_matches=web_path_matches, output_path=web_output_path)
+
+
+"""
 for matching_path in web_path_matches:
     #print(matching_path)
     basename = matching_path.name
@@ -159,5 +191,5 @@ for matching_path in web_path_matches:
         #print(move_success, move_status)
     else:
         print(f'Unable to match: {basename}')
-
+"""
 
