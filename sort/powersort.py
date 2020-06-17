@@ -103,9 +103,9 @@ source_directory_path = Path(config['Files']['staging_path'])
 archive_ext = config['Files']['archive_extension']
 archive_ext_pattern = '*.' + archive_ext
 # Testing multiple patterns
-archive_patterns = config.items("Archive_patterns")
-for key, pattern in archive_patterns:
-    print(f'key: {key}, pattern: {pattern}')
+archive_extensions = config.items("Archive_extensions")
+for key, extension in archive_extensions:
+    print(f'key: {key}, extension: {extension}')
 archive_output_path = Path(config['Files']['archive_image_destination_path'])
 web_ext = config['Files']['web_extension']
 web_ext_pattern = '*.' + web_ext
