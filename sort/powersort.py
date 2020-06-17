@@ -142,7 +142,7 @@ else:
     archive_path_matches = source_directory_path.glob(archive_ext_pattern)
 
 # sort archive files
-sort_files(path_matches=archive_path_matches, output_path=web_output_path)
+sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
 
 # Scan for web files
 print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
