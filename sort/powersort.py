@@ -141,14 +141,6 @@ else:
     # Using glob
     archive_path_matches = source_directory_path.glob(archive_ext_pattern)
 
-# TEST show matches
-"""
-for matching_path in archival_path_matches:
-    basename = matching_path.name
-    file_name = matching_path.stem
-    file_extension = matching_path.suffix
-    print(basename)
-"""
 # sort archive files
 sort_files(path_matches=archive_path_matches, output_path=web_output_path)
 
@@ -156,40 +148,11 @@ sort_files(path_matches=archive_path_matches, output_path=web_output_path)
 print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
 if recurse_subdirectories:
     web_path_matches = source_directory_path.rglob(web_ext_pattern)
-else:    web_path_matches = source_directory_path.glob(web_ext_pattern)
-
+else:
+    web_path_matches = source_directory_path.glob(web_ext_pattern)
 
 # sort web files
 sort_files(path_matches=web_path_matches, output_path=web_output_path)
 
 
-"""
-for matching_path in web_path_matches:
-    #print(matching_path)
-    basename = matching_path.name
-    file_name = matching_path.stem
-    file_extension = matching_path.suffix
-    #print('file_name:', file_name)
-    #print('file_extension:', file_extension)
-    #accession_id = file_name[len(collection_prefix):]
-    #print(accession_id)
-    accession_match = accession_id_pattern.match(file_name)
-    if accession_match:
-        # Extract accession number
-        accession_number = int(accession_match.group(1))
-        #print(f'file: {basename}, number: {accession_number}')
-        folder_number = int(accession_number//folder_increment*folder_increment)
-        padded_folder_number = str(folder_number).zfill(PAD)
-        # zfill may be deprecated in future? Look into string formatting with fill
-        # https://stackoverflow.com/a/339013
-        destination_folder_name = collection_prefix + padded_folder_number
-        #print(f'Destination folder:{destination_folder_name}')
-        # web destination path
-        web_destination_path = web_output_path.joinpath(destination_folder_name)
-        #print(f'web_destination_path:{web_destination_path}')
-        move_success, move_status = move_file(source=matching_path, destination_directory=web_destination_path, filename=basename)
-        #print(move_success, move_status)
-    else:
-        print(f'Unable to match: {basename}')
-"""
 
