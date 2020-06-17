@@ -2,12 +2,9 @@ import configparser
 from pathlib import Path
 import argparse
 import re
-#import glob
-#import os
 import shutil
+import os
 
-DEFAULT_FOLDER_INCREMENT = 1000
-DEFAULT_NUMBER_PAD = 7
 files_analyzed = 0
 files_sorted = 0
 verbose = False
@@ -25,11 +22,9 @@ args = vars(ap.parse_args())
 config = configparser.ConfigParser()
 config_file = args["config"]
 config.read(config_file)
-# see for lists: https://stackoverflow.com/a/8048529/560798
 
 dry_run = args["dry_run"]
 verbose = args["verbose"]
-PAD = DEFAULT_NUMBER_PAD
 
 def move_file(source=None, destination_directory=None, filename=None):
     destination = destination_directory.joinpath(filename)
@@ -70,7 +65,7 @@ def sort_files(path_matches=None, output_path=None):
             # Extract accession number
             accession_number = int(accession_match.group(1))
             folder_number = int(accession_number//folder_increment*folder_increment)
-            padded_folder_number = str(folder_number).zfill(PAD)
+            padded_folder_number = str(folder_number).zfill(number_pad)
             # zfill may be deprecated in future? Look into string formatting with fill
             # https://stackoverflow.com/a/339013
             destination_folder_name = collection_prefix + padded_folder_number
@@ -81,29 +76,36 @@ def sort_files(path_matches=None, output_path=None):
             print(f'Unable to match: {basename}')
 
 # Get collection parameters and defaults
-collection_prefix = config['Collection']['collection_prefix']
-folder_increment = config['Files']['folder_increment']
-print(f'folder_increment: {folder_increment}')
-# TODO Get number pad
-
 try:
-    folder_increment = int(folder_increment)
-except:
-    print(f'folder_increment: {folder_increment} can not be converted to integer.')
+    collection_prefix = config['Collection']['collection_prefix']
+    folder_increment = config['Files']['folder_increment']
+    number_pad = config['Files']['number_pad']
+    # Set up paths and patterns
+    source_directory_path = Path(config['Paths']['staging_path'])
+    # Read multiple archive extensions
+    archive_extensions = config.items("Archive_extensions")
+    archive_output_path = Path(config['Paths']['archive_image_destination_path'])
+    # Read multiple web extensions
+    web_extensions = config.items("Web_extensions")
+    web_output_path = Path(config['Paths']['web_image_destination_path'])
+except KeyError as e:
+    print('Missing key in configuration file:', e)
     quit()
 
-# Set up paths and patterns
-source_directory_path = Path(config['Files']['staging_path'])
-#archive_ext = config['Files']['archive_extension']
-#archive_ext_pattern = '*.' + archive_ext
-# Multiple archive extensions
-archive_extensions = config.items("Archive_extensions")
-archive_output_path = Path(config['Files']['archive_image_destination_path'])
-#web_ext = config['Files']['web_extension']
-#web_ext_pattern = '*.' + web_ext
-# Multiple web extensions
-web_extensions = config.items("Web_extensions")
-web_output_path = Path(config['Files']['web_image_destination_path'])
+# Convert configuration strings to ints
+try:
+    folder_increment = int(folder_increment)
+except ValueError:
+    print(f'folder_increment: {folder_increment} can not be converted to integer.')
+    quit()
+print(f'folder_increment: {folder_increment}')
+
+try:
+    number_pad = int(number_pad)
+except:
+    print(f'number_pad: {number_pad} can not be converted to integer.')
+    quit()
+print(f'number_pad: {number_pad}')
 
 # Check existence of source path
 if source_directory_path:
@@ -115,8 +117,15 @@ if source_directory_path:
         print('Terminating script.')
         quit()
 
-# TODO Check ability to write to web directory
-# TODO Check ability to write to archive directory
+# Check ability to write to web directory
+if not os.access(web_output_path, os.W_OK | os.X_OK):
+    print(f'Unable to write to web directory: {web_output_path}')
+    quit()
+
+# Check ability to write to archive directory
+if not os.access(archive_output_path, os.W_OK | os.X_OK):
+    print(f'Unable to write to archive directory: {archive_output_path}')
+    quit()
 
 # Start scanning source directory
 recurse_subdirectories = True
@@ -126,11 +135,10 @@ recurse_subdirectories = True
 pattern_string = collection_prefix + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 
+# Scan for all archive file extensions
 for key, extension in archive_extensions:
-    #print(f'key: {key}, extension: {extension}')
     archive_ext_pattern = '*.' + extension
-
-    # Scan for archival files
+    # Scan for archive files
     print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
     if recurse_subdirectories:
         # Using rglob
@@ -142,11 +150,10 @@ for key, extension in archive_extensions:
     # sort archive files
     sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
 
-# Scan for web files
+# Scan for all web file extensions
 for key, extension in web_extensions:
-    #print(f'key: {key}, extension: {extension}')
     web_ext_pattern = '*.' + extension
-
+    # Scan for web files
     print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
     if recurse_subdirectories:
         web_path_matches = source_directory_path.rglob(web_ext_pattern)
