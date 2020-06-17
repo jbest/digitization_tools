@@ -6,7 +6,6 @@ import re
 #import os
 import shutil
 
-#DEFAULT_HERBARIUM_PREFIX = 'BRIT'
 DEFAULT_FOLDER_INCREMENT = 1000
 DEFAULT_NUMBER_PAD = 7
 files_analyzed = 0
@@ -27,8 +26,6 @@ config = configparser.ConfigParser()
 config_file = args["config"]
 config.read(config_file)
 # see for lists: https://stackoverflow.com/a/8048529/560798
-#print(config.sections())
-#print(config['Files']['web_image_destination_path'])
 
 dry_run = args["dry_run"]
 verbose = args["verbose"]
@@ -95,20 +92,17 @@ except:
     print(f'folder_increment: {folder_increment} can not be converted to integer.')
     quit()
 
-
-# Institution code?
-
 # Set up paths and patterns
 source_directory_path = Path(config['Files']['staging_path'])
-archive_ext = config['Files']['archive_extension']
-archive_ext_pattern = '*.' + archive_ext
-# Testing multiple patterns
+#archive_ext = config['Files']['archive_extension']
+#archive_ext_pattern = '*.' + archive_ext
+# Multiple archive extensions
 archive_extensions = config.items("Archive_extensions")
-for key, extension in archive_extensions:
-    print(f'key: {key}, extension: {extension}')
 archive_output_path = Path(config['Files']['archive_image_destination_path'])
-web_ext = config['Files']['web_extension']
-web_ext_pattern = '*.' + web_ext
+#web_ext = config['Files']['web_extension']
+#web_ext_pattern = '*.' + web_ext
+# Multiple web extensions
+web_extensions = config.items("Web_extensions")
 web_output_path = Path(config['Files']['web_image_destination_path'])
 
 # Check existence of source path
@@ -132,27 +126,35 @@ recurse_subdirectories = True
 pattern_string = collection_prefix + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 
-# Scan for archival files
-print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
-if recurse_subdirectories:
-    # Using rglob
-    archive_path_matches = source_directory_path.rglob(archive_ext_pattern)
-else:
-    # Using glob
-    archive_path_matches = source_directory_path.glob(archive_ext_pattern)
+for key, extension in archive_extensions:
+    #print(f'key: {key}, extension: {extension}')
+    archive_ext_pattern = '*.' + extension
 
-# sort archive files
-sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
+    # Scan for archival files
+    print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
+    if recurse_subdirectories:
+        # Using rglob
+        archive_path_matches = source_directory_path.rglob(archive_ext_pattern)
+    else:
+        # Using glob
+        archive_path_matches = source_directory_path.glob(archive_ext_pattern)
+
+    # sort archive files
+    sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
 
 # Scan for web files
-print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
-if recurse_subdirectories:
-    web_path_matches = source_directory_path.rglob(web_ext_pattern)
-else:
-    web_path_matches = source_directory_path.glob(web_ext_pattern)
+for key, extension in web_extensions:
+    #print(f'key: {key}, extension: {extension}')
+    web_ext_pattern = '*.' + extension
 
-# sort web files
-sort_files(path_matches=web_path_matches, output_path=web_output_path)
+    print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
+    if recurse_subdirectories:
+        web_path_matches = source_directory_path.rglob(web_ext_pattern)
+    else:
+        web_path_matches = source_directory_path.glob(web_ext_pattern)
+
+    # sort web files
+    sort_files(path_matches=web_path_matches, output_path=web_output_path)
 
 
 
