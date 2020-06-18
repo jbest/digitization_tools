@@ -4,6 +4,7 @@ import argparse
 import re
 import shutil
 import os
+import pwd
 import csv
 import datetime
 
@@ -39,7 +40,7 @@ def move_file(source=None, destination_directory=None, filename=None):
         move_success = False
         status = 'Filename exists'
         now = datetime.datetime.now()
-        writer.writerow({'timestamp': now, 'action': 'move', 'result': 'fail-file_exists', \
+        writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': 'fail-file_exists', \
             'source': source, 'destination': destination})
         return move_success, status
     else:
@@ -54,7 +55,7 @@ def move_file(source=None, destination_directory=None, filename=None):
             shutil.move(source, destination)
             status = 'File moved'
             now = datetime.datetime.now()
-            writer.writerow({'timestamp': now, 'action': 'move', 'result': 'success', \
+            writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': 'success', \
                 'source': source, 'destination': destination})
             if verbose:
                 print('Moved:', destination)
@@ -84,7 +85,7 @@ def sort_files(path_matches=None, output_path=None):
         else:
             print(f'Unable to match: {basename}')
             now = datetime.datetime.now()
-            writer.writerow({'timestamp': now, 'action': 'match', 'result': 'fail-no_match', \
+            writer.writerow({'timestamp': now, 'username': username, 'action': 'match', 'result': 'fail-no_match', \
                 'source': matching_path, 'destination': None})
 
 def scan_files(extensions=None):
@@ -110,6 +111,7 @@ try:
     number_pad = config['Files']['number_pad']
     # Set up paths and patterns
     source_directory_path = Path(config['Paths']['staging_path'])
+    log_path = Path(config['Paths']['sort_log_destination_path']) 
     # Read multiple archive extensions
     archive_extensions = config.items("Archive_extensions")
     archive_output_path = Path(config['Paths']['archive_image_destination_path'])
@@ -164,12 +166,21 @@ pattern_string = collection_prefix + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 
 # create CSV file for output
-with open('sort_log.csv', 'w', newline='') as csvfile:
-    fieldnames = ['timestamp', 'action', 'result', 'source', 'destination']
+now = datetime.datetime.now()
+log_filename = collection_prefix + '_' + str(now.strftime('%Y-%m-%dT%H%M%S')) + '.csv'
+log_file_path = log_path.joinpath(log_filename)
+# get current username
+try:
+    username = pwd.getpwuid(os.getuid()).pw_name
+except:
+    print('ERROR - Unable to retrive username.')
+    username = None
+print(username)
+
+with open(log_file_path, 'w', newline='') as csvfile:
+    fieldnames = ['timestamp', 'username', 'action', 'result', 'source', 'destination']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
-    #writer.writerow({'action': 'add', 'result': result})
-
 
     # Scan archive files
     archive_path_matches = scan_files(extensions=archive_extensions)
