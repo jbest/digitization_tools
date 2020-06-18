@@ -71,9 +71,26 @@ def sort_files(path_matches=None, output_path=None):
             destination_folder_name = collection_prefix + padded_folder_number
             # destination path
             destination_path = output_path.joinpath(destination_folder_name)
-            move_success, move_status = move_file(source=matching_path, destination_directory=destination_path, filename=basename)
+            move_success, move_status = move_file(source=matching_path, \
+                destination_directory=destination_path, filename=basename)
         else:
             print(f'Unable to match: {basename}')
+
+def scan_files(extensions=None):
+    for key, extension in extensions:
+        ext_pattern = '*.' + extension
+        # Scan for files
+        print('Scanning directory:', source_directory_path, 'for files matching', ext_pattern)
+        if recurse_subdirectories:
+            # Using rglob
+            path_matches = source_directory_path.rglob(ext_pattern)
+        else:
+            # Using glob
+            path_matches = source_directory_path.glob(ext_pattern)
+
+        # sort archive files
+        #sort_files(path_matches=path_matches, output_path=output_path)
+        return path_matches
 
 # Get collection parameters and defaults
 try:
@@ -135,6 +152,24 @@ recurse_subdirectories = True
 pattern_string = collection_prefix + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 
+"""
+# create CSV file for output
+with open('sample.csv', 'w', newline='') as csvfile:
+    fieldnames = ['action', 'result']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    #writer.writerow({'action': 'add', 'result': result})
+"""
+
+# Scan archive files
+archive_path_matches = scan_files(extensions=archive_extensions)
+sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
+
+# Scan web files
+web_path_matches = scan_files(extensions=web_extensions)
+sort_files(path_matches=web_path_matches, output_path=web_output_path)
+
+"""
 # Scan for all archive file extensions
 for key, extension in archive_extensions:
     archive_ext_pattern = '*.' + extension
@@ -162,6 +197,6 @@ for key, extension in web_extensions:
 
     # sort web files
     sort_files(path_matches=web_path_matches, output_path=web_output_path)
-
+"""
 
 
