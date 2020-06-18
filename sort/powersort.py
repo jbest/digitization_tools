@@ -4,6 +4,8 @@ import argparse
 import re
 import shutil
 import os
+import csv
+import datetime
 
 files_analyzed = 0
 files_sorted = 0
@@ -36,6 +38,9 @@ def move_file(source=None, destination_directory=None, filename=None):
         #TODO change to exception
         move_success = False
         status = 'Filename exists'
+        now = datetime.datetime.now()
+        writer.writerow({'timestamp': now, 'action': 'move', 'result': 'fail-file_exists', \
+            'source': source, 'destination': destination})
         return move_success, status
     else:
         if dry_run:
@@ -48,6 +53,9 @@ def move_file(source=None, destination_directory=None, filename=None):
             # Temporarily disabled move
             shutil.move(source, destination)
             status = 'File moved'
+            now = datetime.datetime.now()
+            writer.writerow({'timestamp': now, 'action': 'move', 'result': 'success', \
+                'source': source, 'destination': destination})
             if verbose:
                 print('Moved:', destination)
         # files_sorted += 1
@@ -75,6 +83,9 @@ def sort_files(path_matches=None, output_path=None):
                 destination_directory=destination_path, filename=basename)
         else:
             print(f'Unable to match: {basename}')
+            now = datetime.datetime.now()
+            writer.writerow({'timestamp': now, 'action': 'match', 'result': 'fail-no_match', \
+                'source': matching_path, 'destination': None})
 
 def scan_files(extensions=None):
     for key, extension in extensions:
@@ -152,22 +163,21 @@ recurse_subdirectories = True
 pattern_string = collection_prefix + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 
-"""
 # create CSV file for output
-with open('sample.csv', 'w', newline='') as csvfile:
-    fieldnames = ['action', 'result']
+with open('sort_log.csv', 'w', newline='') as csvfile:
+    fieldnames = ['timestamp', 'action', 'result', 'source', 'destination']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     #writer.writerow({'action': 'add', 'result': result})
-"""
 
-# Scan archive files
-archive_path_matches = scan_files(extensions=archive_extensions)
-sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
 
-# Scan web files
-web_path_matches = scan_files(extensions=web_extensions)
-sort_files(path_matches=web_path_matches, output_path=web_output_path)
+    # Scan archive files
+    archive_path_matches = scan_files(extensions=archive_extensions)
+    sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
+
+    # Scan web files
+    web_path_matches = scan_files(extensions=web_extensions)
+    sort_files(path_matches=web_path_matches, output_path=web_output_path)
 
 
 
