@@ -169,34 +169,5 @@ sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
 web_path_matches = scan_files(extensions=web_extensions)
 sort_files(path_matches=web_path_matches, output_path=web_output_path)
 
-"""
-# Scan for all archive file extensions
-for key, extension in archive_extensions:
-    archive_ext_pattern = '*.' + extension
-    # Scan for archive files
-    print('Scanning directory:', source_directory_path, 'for archival files matching', archive_ext_pattern)
-    if recurse_subdirectories:
-        # Using rglob
-        archive_path_matches = source_directory_path.rglob(archive_ext_pattern)
-    else:
-        # Using glob
-        archive_path_matches = source_directory_path.glob(archive_ext_pattern)
-
-    # sort archive files
-    sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
-
-# Scan for all web file extensions
-for key, extension in web_extensions:
-    web_ext_pattern = '*.' + extension
-    # Scan for web files
-    print('Scanning directory:', source_directory_path, 'for web files matching', web_ext_pattern)
-    if recurse_subdirectories:
-        web_path_matches = source_directory_path.rglob(web_ext_pattern)
-    else:
-        web_path_matches = source_directory_path.glob(web_ext_pattern)
-
-    # sort web files
-    sort_files(path_matches=web_path_matches, output_path=web_output_path)
-"""
 
 
