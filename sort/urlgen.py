@@ -13,6 +13,9 @@ from urllib.parse import urljoin
 
 FILE_BASE_PATH = '/corral-repl/projects/TORCH/web/'
 URL_BASE = 'https://web.corral.tacc.utexas.edu/torch/'
+FILE_PREFIX = 'BRIT'
+
+
 # set up argument parser
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input", required=True, \
@@ -47,6 +50,10 @@ print(generate_url(file_path=image_path))
 with open(input_file, newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
+        # check if JPG
+        # check if success
+        # get catalog number
+
         print(row['destination'])
         print(generate_url(file_path=row['destination']))
 
