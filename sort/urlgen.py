@@ -8,13 +8,16 @@ import into Symbiota using the URL Mapping profile.
 
 import csv
 import argparse
+import re
 import os.path
 from urllib.parse import urljoin
+from pathlib import Path
 
 FILE_BASE_PATH = '/corral-repl/projects/TORCH/web/'
 URL_BASE = 'https://web.corral.tacc.utexas.edu/torch/'
 FILE_PREFIX = 'BRIT'
-
+THUMB_EXT = '_thumb'
+MEDIUM_EXT = '_med'
 
 # set up argument parser
 ap = argparse.ArgumentParser()
@@ -46,15 +49,45 @@ def generate_url(file_base_path=FILE_BASE_PATH, file_path=None, url_base=URL_BAS
 image_path = '/corral-repl/projects/TORCH/web/TEST/BRIT0001000/BRIT1385.JPG'
 print(generate_url(file_path=image_path))
 
+pattern_string = FILE_PREFIX + '(\d*)'
+catalog_number_pattern = re.compile(pattern_string)
 
+occurrence_set = {}
 with open(input_file, newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        # check if JPG
-        # check if success
-        # get catalog number
+        file_path =  row['destination']
+        result_status = row['result']
+        # check if file successfully moved
+        if result_status == 'success':
+            # check if JPG
+            if file_path.upper().endswith('JPG'):
+                #get filename parts
+                file_path_obj = Path(file_path)
+                basename = file_path_obj.name
+                file_name = file_path_obj.stem
+                file_extension = file_path_obj.suffix
+                catalog_number = catalog_number_pattern.match(file_name).group(0)
+                # Create catalog number record if it doesn't exist
+                if catalog_number not in occurrence_set:
+                    occurrence_set[catalog_number]={'catalog_number': catalog_number}
+                #print(catalog_number_match, generate_url(file_path=row['destination']))
+                # Determine it thumbnail, original, or web size
+                if file_name.endswith(THUMB_EXT):
+                    #print('Thumb:', file_name)
+                    occurrence_set[catalog_number]['thumbnail'] = file_path
+                elif file_name.endswith(MEDIUM_EXT):
+                    #print('Medium:', file_name)
+                    occurrence_set[catalog_number]['web'] = file_path
+                else:
+                    #print('Large:', file_name)
+                    occurrence_set[catalog_number]['large'] = file_path
 
-        print(row['destination'])
-        print(generate_url(file_path=row['destination']))
+
+for key, value in occurrence_set.items():
+    print(value['catalog_number'])
+
+
+        
 
 
