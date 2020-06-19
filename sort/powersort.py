@@ -1,3 +1,15 @@
+"""
+Powersort organizes files based on file type and sorting rules which are
+designated in an external configuration file. File types are Archival image files
+such as DNG, CR2, etc and Web files are JPEGs. The script searches for files based
+on file extensions and source paths which are in the config file. Files matching the
+expected naming pattern are sorted into a destination directory and sub-directories
+which are created by the script. Files not matching the pattern are not moved.
+Files that match the filename and path of existing files will not be moved.
+Results are saved to a log file.
+Author: Jason Best jbest@brit.org
+"""
+
 import configparser
 from pathlib import Path
 import argparse
@@ -32,6 +44,9 @@ dry_run = args["dry_run"]
 verbose = args["verbose"]
 
 def move_file(source=None, destination_directory=None, filename=None):
+    """
+    Moves files from the source to the destination directory.
+    """
     destination = destination_directory.joinpath(filename)
     if destination.exists():
         if dry_run:
@@ -71,6 +86,10 @@ def move_file(source=None, destination_directory=None, filename=None):
         return {'move_success': move_success, 'status': status}
 
 def sort_files(path_matches=None, output_path=None):
+    """
+    Determines the appropraite destination for each file in path_matches.
+    Calls move_file to move into determined destination.
+    """
     sorted_file_count = 0
     path_matched_file_count = 0
     unmatched_file_count = 0
@@ -84,12 +103,14 @@ def sort_files(path_matches=None, output_path=None):
         if accession_match:
             # Extract accession number
             accession_number = int(accession_match.group(1))
+            # Determine what folder number the files should be moved to
             folder_number = int(accession_number//folder_increment*folder_increment)
             padded_folder_number = str(folder_number).zfill(number_pad)
             # zfill may be deprecated in future? Look into string formatting with fill
             # https://stackoverflow.com/a/339013
+            # Prepend the collection prefix to the folder number
             destination_folder_name = collection_prefix + padded_folder_number
-            # destination path
+            # Determin destination path for file
             destination_path = output_path.joinpath(destination_folder_name)
             move_result = move_file(source=matching_path, \
                 destination_directory=destination_path, filename=basename)
@@ -113,6 +134,9 @@ def sort_files(path_matches=None, output_path=None):
     'unmoved_file_count': unmoved_file_count}
 
 def scan_files(extensions=None):
+    """
+    Scans the source directory for files matching the provided extensions.
+    """
     for key, extension in extensions:
         ext_pattern = '*.' + extension
         # Scan for files
