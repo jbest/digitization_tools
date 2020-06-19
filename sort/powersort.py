@@ -8,8 +8,10 @@ import pwd
 import csv
 import datetime
 
-files_analyzed = 0
-files_sorted = 0
+web_files_analyzed = 0
+web_files_sorted = 0
+archive_files_analyzed = 0
+archive_files_sorted = 0
 verbose = False
 
 # set up argument parser
@@ -33,20 +35,25 @@ def move_file(source=None, destination_directory=None, filename=None):
     destination = destination_directory.joinpath(filename)
     if destination.exists():
         if dry_run:
-            print('DRY-RUN: Filename exists, cannot move:', destination)
+            now = datetime.datetime.now()
+            writer.writerow({'timestamp': now, 'username': username, 'action': 'DRY_RUN-move', 'result': 'fail', \
+                'source': source, 'destination': destination})
         if verbose:
             print('Filename exists, cannot move:', destination)
         #TODO change to exception
         move_success = False
         status = 'Filename exists'
         now = datetime.datetime.now()
-        writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': 'fail-file_exists', \
+        writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': 'fail', \
             'source': source, 'destination': destination})
-        return move_success, status
+        return {'move_success': move_success, 'status': status}
     else:
         if dry_run:
             print('DRY-RUN: Moved:', destination)
             status = 'DRY-RUN - simulated move'
+            now = datetime.datetime.now()
+            writer.writerow({'timestamp': now, 'username': username, 'action': 'DRY_RUN-move', 'result': 'success', \
+                'source': source, 'destination': destination})
         else:
             # Create directory path if it doesn't exist
             destination_directory.mkdir(parents=True, exist_ok=True)
@@ -61,11 +68,15 @@ def move_file(source=None, destination_directory=None, filename=None):
                 print('Moved:', destination)
         # files_sorted += 1
         move_success = True       
-        return move_success, status
+        return {'move_success': move_success, 'status': status}
 
 def sort_files(path_matches=None, output_path=None):
+    sorted_file_count = 0
+    path_matched_file_count = 0
+    unmatched_file_count = 0
+    unmoved_file_count = 0
     for matching_path in path_matches:
-        #print(matching_path)
+        path_matched_file_count += 1
         basename = matching_path.name
         file_name = matching_path.stem
         file_extension = matching_path.suffix
@@ -80,13 +91,28 @@ def sort_files(path_matches=None, output_path=None):
             destination_folder_name = collection_prefix + padded_folder_number
             # destination path
             destination_path = output_path.joinpath(destination_folder_name)
-            move_success, move_status = move_file(source=matching_path, \
+            move_result = move_file(source=matching_path, \
                 destination_directory=destination_path, filename=basename)
+            if move_result['move_success']:
+                print('MOVED!!!')
+                sorted_file_count +=1
+            else:
+                print('NO MOVE!!')
+                unmoved_file_count +=1
         else:
+            unmatched_file_count +=1
             print(f'Unable to match: {basename}')
             now = datetime.datetime.now()
-            writer.writerow({'timestamp': now, 'username': username, 'action': 'match', 'result': 'fail-no_match', \
+            if dry_run:
+                action = 'DRY_RUN-match'
+            else:
+                action = 'match'
+            writer.writerow({'timestamp': now, 'username': username, 'action': action, 'result': 'fail', \
                 'source': matching_path, 'destination': None})
+    return {'sorted_file_count': sorted_file_count, \
+    'path_matched_file_count': path_matched_file_count, \
+    'unmatched_file_count': unmatched_file_count, \
+    'unmoved_file_count': unmoved_file_count}
 
 def scan_files(extensions=None):
     for key, extension in extensions:
@@ -166,6 +192,8 @@ pattern_string = collection_prefix + '(\d*)'
 accession_id_pattern = re.compile(pattern_string)
 
 # create CSV file for output
+# Create log directory path if it does not exist
+log_path.mkdir(exist_ok=True)
 now = datetime.datetime.now()
 log_filename = collection_prefix + '_' + str(now.strftime('%Y-%m-%dT%H%M%S')) + '.csv'
 log_file_path = log_path.joinpath(log_filename)
@@ -175,7 +203,6 @@ try:
 except:
     print('ERROR - Unable to retrive username.')
     username = None
-print(username)
 
 with open(log_file_path, 'w', newline='') as csvfile:
     fieldnames = ['timestamp', 'username', 'action', 'result', 'source', 'destination']
@@ -184,11 +211,33 @@ with open(log_file_path, 'w', newline='') as csvfile:
 
     # Scan archive files
     archive_path_matches = scan_files(extensions=archive_extensions)
-    sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
+    #archive_files_analyzed = len(archive_path_matches)
+    sort_result = sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
+    archive_file_count = sort_result['path_matched_file_count']
+    archive_unmatched_file_count = sort_result['unmatched_file_count']
+    archive_sorted_file_count = sort_result['sorted_file_count']
+    archive_unsorted_file_count = sort_result['unmoved_file_count']
 
     # Scan web files
     web_path_matches = scan_files(extensions=web_extensions)
-    sort_files(path_matches=web_path_matches, output_path=web_output_path)
+    #web_files_analyzed = len(web_path_matches)
+    sort_result = sort_files(path_matches=web_path_matches, output_path=web_output_path)
+    web_file_count = sort_result['path_matched_file_count']
+    web_unmatched_file_count = sort_result['unmatched_file_count']
+    web_sorted_file_count = sort_result['sorted_file_count']
+    web_unsorted_file_count = sort_result['unmoved_file_count']
 
-
-
+#TODO add summary report
+print('SORT COMPLETE')
+print('Log file written to:', log_file_path)
+print('ARCHIVE FILES:')
+print('Archive files found:', archive_file_count)
+print('Archive files sorted:', archive_sorted_file_count)
+print('Archive files unsorted:', archive_unsorted_file_count)
+print('Archive files unmatched pattern:', archive_unmatched_file_count)
+print('WEB FILES:')
+print('Web files found:', web_file_count)
+print('Web files sorted:', web_sorted_file_count)
+print('Web files unsorted:', web_unsorted_file_count)
+print('Web files unmatched pattern:', web_unmatched_file_count)
+# duration
