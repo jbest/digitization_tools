@@ -46,8 +46,8 @@ def generate_url(file_base_path=FILE_BASE_PATH, file_path=None, url_base=URL_BAS
 
 # /corral-repl/projects/TORCH/web/TEST/BRIT0001000/BRIT1280.JPG
 # sample file path
-image_path = '/corral-repl/projects/TORCH/web/TEST/BRIT0001000/BRIT1385.JPG'
-print(generate_url(file_path=image_path))
+#image_path = '/corral-repl/projects/TORCH/web/TEST/BRIT0001000/BRIT1385.JPG'
+#print(generate_url(file_path=image_path))
 
 pattern_string = FILE_PREFIX + '(\d*)'
 catalog_number_pattern = re.compile(pattern_string)
@@ -75,19 +75,24 @@ with open(input_file, newline='') as csvfile:
                 # Determine it thumbnail, original, or web size
                 if file_name.endswith(THUMB_EXT):
                     #print('Thumb:', file_name)
-                    occurrence_set[catalog_number]['thumbnail'] = file_path
+                    occurrence_set[catalog_number]['thumbnail'] = generate_url(file_path=file_path)
                 elif file_name.endswith(MEDIUM_EXT):
                     #print('Medium:', file_name)
-                    occurrence_set[catalog_number]['web'] = file_path
+                    occurrence_set[catalog_number]['web'] = generate_url(file_path=file_path)
                 else:
                     #print('Large:', file_name)
-                    occurrence_set[catalog_number]['large'] = file_path
+                    occurrence_set[catalog_number]['large'] = generate_url(file_path=file_path)
 
 
-for key, value in occurrence_set.items():
-    print(value['catalog_number'])
+# Get input file name
+input_file_name_stem = Path(input_file).stem
+output_file_name = input_file_name_stem + '_urls.csv'
+print('Writing urls to:', output_file_name)
 
-
-        
-
+with open(output_file_name, 'w', newline='') as csvfile:
+    fieldnames=['catalog_number', 'large', 'web', 'thumbnail']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    for key, image_set in occurrence_set.items():
+        writer.writerow(image_set)
 
