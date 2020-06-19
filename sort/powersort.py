@@ -94,10 +94,8 @@ def sort_files(path_matches=None, output_path=None):
             move_result = move_file(source=matching_path, \
                 destination_directory=destination_path, filename=basename)
             if move_result['move_success']:
-                print('MOVED!!!')
                 sorted_file_count +=1
             else:
-                print('NO MOVE!!')
                 unmoved_file_count +=1
         else:
             unmatched_file_count +=1
@@ -154,14 +152,12 @@ try:
 except ValueError:
     print(f'folder_increment: {folder_increment} can not be converted to integer.')
     quit()
-print(f'folder_increment: {folder_increment}')
 
 try:
     number_pad = int(number_pad)
 except:
     print(f'number_pad: {number_pad} can not be converted to integer.')
     quit()
-print(f'number_pad: {number_pad}')
 
 # Check existence of source path
 if source_directory_path:
@@ -172,6 +168,9 @@ if source_directory_path:
         print(f'ERROR: directory {source_directory_path} does not exist.')
         print('Terminating script.')
         quit()
+else:
+    print(f'ERROR: no source directory provided.')
+    quit() 
 
 # Check ability to write to web directory
 if not os.access(web_output_path, os.W_OK | os.X_OK):
@@ -211,7 +210,6 @@ with open(log_file_path, 'w', newline='') as csvfile:
 
     # Scan archive files
     archive_path_matches = scan_files(extensions=archive_extensions)
-    #archive_files_analyzed = len(archive_path_matches)
     sort_result = sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
     archive_file_count = sort_result['path_matched_file_count']
     archive_unmatched_file_count = sort_result['unmatched_file_count']
@@ -220,24 +218,22 @@ with open(log_file_path, 'w', newline='') as csvfile:
 
     # Scan web files
     web_path_matches = scan_files(extensions=web_extensions)
-    #web_files_analyzed = len(web_path_matches)
     sort_result = sort_files(path_matches=web_path_matches, output_path=web_output_path)
     web_file_count = sort_result['path_matched_file_count']
     web_unmatched_file_count = sort_result['unmatched_file_count']
     web_sorted_file_count = sort_result['sorted_file_count']
     web_unsorted_file_count = sort_result['unmoved_file_count']
 
-#TODO add summary report
+# Summary report
 print('SORT COMPLETE')
 print('Log file written to:', log_file_path)
 print('ARCHIVE FILES:')
-print('Archive files found:', archive_file_count)
-print('Archive files sorted:', archive_sorted_file_count)
-print('Archive files unsorted:', archive_unsorted_file_count)
-print('Archive files unmatched pattern:', archive_unmatched_file_count)
+print('Found:', archive_file_count)
+print('Sorted:', archive_sorted_file_count)
+print('Unsorted:', archive_unsorted_file_count)
+print('Unmatched pattern:', archive_unmatched_file_count)
 print('WEB FILES:')
-print('Web files found:', web_file_count)
-print('Web files sorted:', web_sorted_file_count)
-print('Web files unsorted:', web_unsorted_file_count)
-print('Web files unmatched pattern:', web_unmatched_file_count)
-# duration
+print('Found:', web_file_count)
+print('Sorted:', web_sorted_file_count)
+print('Unsorted:', web_unsorted_file_count)
+print('Unmatched pattern:', web_unmatched_file_count)
