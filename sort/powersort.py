@@ -19,6 +19,7 @@ import os
 import pwd
 import csv
 import datetime
+import itertools
 
 web_files_analyzed = 0
 web_files_sorted = 0
@@ -140,7 +141,7 @@ def scan_files(extensions=None):
     """
     Scans the source directory for files matching the provided extensions.
     """
-    #match_list = []
+    match_list = []
     for key, extension in extensions:
         ext_pattern = '*.' + extension
         # Scan for files
@@ -151,11 +152,10 @@ def scan_files(extensions=None):
         else:
             # Using glob
             path_matches = source_directory_path.glob(ext_pattern)
+        match_list.append(path_matches)
 
-        # sort archive files
-        #sort_files(path_matches=path_matches, output_path=output_path)
-        print(path_matches)
-        return path_matches
+    all_matches = itertools.chain(*match_list)
+    return all_matches
 
 # Get collection parameters and defaults
 try:
