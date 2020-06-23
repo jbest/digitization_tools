@@ -73,16 +73,19 @@ def move_file(source=None, destination_directory=None, filename=None):
             # Create directory path if it doesn't exist
             destination_directory.mkdir(parents=True, exist_ok=True)
             #TODO Log creation of directory? If so, will need to force exception and only log when no exception
-            # Temporarily disabled move
-            shutil.move(source, destination)
-            status = 'File moved'
+            try:
+                shutil.move(source, destination)
+                status = 'success'
+                move_success = True
+            except PermissionError:
+                status = 'fail'
+                move_success = False
             now = datetime.datetime.now()
-            writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': 'success', \
+            writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': status, \
                 'source': source, 'destination': destination})
             if verbose:
-                print('Moved:', destination)
-        # files_sorted += 1
-        move_success = True       
+                print('Move:', destination, status)
+               
         return {'move_success': move_success, 'status': status}
 
 def sort_files(path_matches=None, output_path=None):
@@ -137,6 +140,7 @@ def scan_files(extensions=None):
     """
     Scans the source directory for files matching the provided extensions.
     """
+    #match_list = []
     for key, extension in extensions:
         ext_pattern = '*.' + extension
         # Scan for files
@@ -150,6 +154,7 @@ def scan_files(extensions=None):
 
         # sort archive files
         #sort_files(path_matches=path_matches, output_path=output_path)
+        print(path_matches)
         return path_matches
 
 # Get collection parameters and defaults
