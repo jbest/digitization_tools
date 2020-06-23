@@ -44,7 +44,7 @@ config.read(config_file)
 dry_run = args["dry_run"]
 verbose = args["verbose"]
 
-def move_file(source=None, destination_directory=None, filename=None):
+def move_file(source=None, destination_directory=None, filename=None, filetype=None):
     """
     Moves files from the source to the destination directory.
     """
@@ -61,7 +61,7 @@ def move_file(source=None, destination_directory=None, filename=None):
         status = 'Filename exists'
         now = datetime.datetime.now()
         writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': 'fail', \
-            'source': source, 'destination': destination})
+            'filetype': filetype, 'source': source, 'destination': destination})
         return {'move_success': move_success, 'status': status}
     else:
         if dry_run:
@@ -69,7 +69,7 @@ def move_file(source=None, destination_directory=None, filename=None):
             status = 'DRY-RUN - simulated move'
             now = datetime.datetime.now()
             writer.writerow({'timestamp': now, 'username': username, 'action': 'DRY_RUN-move', 'result': 'success', \
-                'source': source, 'destination': destination})
+                'filetype': filetype, 'source': source, 'destination': destination})
         else:
             # Create directory path if it doesn't exist
             destination_directory.mkdir(parents=True, exist_ok=True)
@@ -80,16 +80,18 @@ def move_file(source=None, destination_directory=None, filename=None):
                 move_success = True
             except PermissionError:
                 status = 'fail'
+                details = 'PermissionError'
                 move_success = False
             now = datetime.datetime.now()
-            writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': status, \
-                'source': source, 'destination': destination})
+            writer.writerow({'timestamp': now, 'username': username, \
+                'action': 'move', 'result': status, 'details': details, \
+                'filetype': filetype, 'source': source, 'destination': destination})
             if verbose:
                 print('Move:', destination, status)
                
         return {'move_success': move_success, 'status': status}
 
-def sort_files(path_matches=None, output_path=None):
+def sort_files(path_matches=None, output_path=None, filetype=None):
     """
     Determines the appropraite destination for each file in path_matches.
     Calls move_file to move into determined destination.
@@ -117,7 +119,7 @@ def sort_files(path_matches=None, output_path=None):
             # Determin destination path for file
             destination_path = output_path.joinpath(destination_folder_name)
             move_result = move_file(source=matching_path, \
-                destination_directory=destination_path, filename=basename)
+                destination_directory=destination_path, filename=basename, filetype=filetype)
             if move_result['move_success']:
                 sorted_file_count +=1
             else:
@@ -131,7 +133,7 @@ def sort_files(path_matches=None, output_path=None):
             else:
                 action = 'match'
             writer.writerow({'timestamp': now, 'username': username, 'action': action, 'result': 'fail', \
-                'source': matching_path, 'destination': None})
+                'filetype': filetype, 'source': matching_path, 'destination': None})
     return {'sorted_file_count': sorted_file_count, \
     'path_matched_file_count': path_matched_file_count, \
     'unmatched_file_count': unmatched_file_count, \
@@ -233,13 +235,13 @@ except:
     username = None
 
 with open(log_file_path, 'w', newline='') as csvfile:
-    fieldnames = ['timestamp', 'username', 'action', 'result', 'source', 'destination']
+    fieldnames = ['timestamp', 'username', 'action', 'result', 'details', 'filetype', 'source', 'destination']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
     # Scan archive files
     archive_path_matches = scan_files(extensions=archive_extensions)
-    sort_result = sort_files(path_matches=archive_path_matches, output_path=archive_output_path)
+    sort_result = sort_files(path_matches=archive_path_matches, output_path=archive_output_path, filetype='archive')
     archive_file_count = sort_result['path_matched_file_count']
     archive_unmatched_file_count = sort_result['unmatched_file_count']
     archive_sorted_file_count = sort_result['sorted_file_count']
@@ -247,7 +249,7 @@ with open(log_file_path, 'w', newline='') as csvfile:
 
     # Scan web files
     web_path_matches = scan_files(extensions=web_extensions)
-    sort_result = sort_files(path_matches=web_path_matches, output_path=web_output_path)
+    sort_result = sort_files(path_matches=web_path_matches, output_path=web_output_path, filetype='web')
     web_file_count = sort_result['path_matched_file_count']
     web_unmatched_file_count = sort_result['unmatched_file_count']
     web_sorted_file_count = sort_result['sorted_file_count']
