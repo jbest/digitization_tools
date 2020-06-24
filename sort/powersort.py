@@ -21,11 +21,7 @@ import csv
 import datetime
 import itertools
 
-web_files_analyzed = 0
-web_files_sorted = 0
-archive_files_analyzed = 0
-archive_files_sorted = 0
-verbose = False
+# TODO Make dry run more useful - make it test destination perms and perms for each file to be moved
 
 # set up argument parser
 ap = argparse.ArgumentParser()
@@ -35,7 +31,12 @@ ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
 ap.add_argument("-n", "--dry_run", action="store_true", \
     help="Simulate the sort process without moving files or creating directories.")
+filetype_group = ap.add_mutually_exclusive_group()
+filetype_group.add_argument("-w", "--web_only",help='Sort web files only', action='store_true')
+filetype_group.add_argument("-a", "--archive_only", help='Sort archive files only', action='store_true')
 args = vars(ap.parse_args())
+
+print(args)
 
 config = configparser.ConfigParser()
 config_file = args["config"]
@@ -43,17 +44,19 @@ config.read(config_file)
 
 dry_run = args["dry_run"]
 verbose = args["verbose"]
+archive_only = args["archive_only"]
+web_only = args["web_only"]
 
 def move_file(source=None, destination_directory=None, filename=None, filetype=None):
     """
-    Moves files from the source to the destination directory.
+    Move files from the source to the destination directory.
     """
     destination = destination_directory.joinpath(filename)
     if destination.exists():
         if dry_run:
             now = datetime.datetime.now()
             writer.writerow({'timestamp': now, 'username': username, 'action': 'DRY_RUN-move', 'result': 'fail', \
-                'source': source, 'destination': destination})
+                'filetype': filetype, 'source': source, 'destination': destination})
         if verbose:
             print('Filename exists, cannot move:', destination)
         #TODO change to exception
@@ -67,6 +70,7 @@ def move_file(source=None, destination_directory=None, filename=None, filetype=N
         if dry_run:
             print('DRY-RUN: Moved:', destination)
             status = 'DRY-RUN - simulated move'
+            move_success = True
             now = datetime.datetime.now()
             writer.writerow({'timestamp': now, 'username': username, 'action': 'DRY_RUN-move', 'result': 'success', \
                 'filetype': filetype, 'source': source, 'destination': destination})
@@ -93,8 +97,8 @@ def move_file(source=None, destination_directory=None, filename=None, filetype=N
 
 def sort_files(path_matches=None, output_path=None, filetype=None):
     """
-    Determines the appropraite destination for each file in path_matches.
-    Calls move_file to move into determined destination.
+    Determine the appropraite destination for each file in path_matches.
+    Call move_file to move into determined destination.
     """
     sorted_file_count = 0
     path_matched_file_count = 0
@@ -141,7 +145,7 @@ def sort_files(path_matches=None, output_path=None, filetype=None):
 
 def scan_files(extensions=None):
     """
-    Scans the source directory for files matching the provided extensions.
+    Scan the source directory for files matching the provided extensions.
     """
     match_list = []
     for key, extension in extensions:
@@ -238,22 +242,33 @@ with open(log_file_path, 'w', newline='') as csvfile:
     fieldnames = ['timestamp', 'username', 'action', 'result', 'details', 'filetype', 'source', 'destination']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
+    
+    web_file_count = 0
+    web_sorted_file_count = 0
+    web_unsorted_file_count = 0
+    web_unmatched_file_count = 0
+    archive_file_count = 0
+    archive_sorted_file_count = 0
+    archive_unsorted_file_count = 0
+    archive_unmatched_file_count = 0
 
-    # Scan archive files
-    archive_path_matches = scan_files(extensions=archive_extensions)
-    sort_result = sort_files(path_matches=archive_path_matches, output_path=archive_output_path, filetype='archive')
-    archive_file_count = sort_result['path_matched_file_count']
-    archive_unmatched_file_count = sort_result['unmatched_file_count']
-    archive_sorted_file_count = sort_result['sorted_file_count']
-    archive_unsorted_file_count = sort_result['unmoved_file_count']
+    # Scan archive files, only archive if specified
+    if (not web_only and not archive_only) or archive_only:
+        archive_path_matches = scan_files(extensions=archive_extensions)
+        sort_result = sort_files(path_matches=archive_path_matches, output_path=archive_output_path, filetype='archive')
+        archive_file_count = sort_result['path_matched_file_count']
+        archive_unmatched_file_count = sort_result['unmatched_file_count']
+        archive_sorted_file_count = sort_result['sorted_file_count']
+        archive_unsorted_file_count = sort_result['unmoved_file_count']
 
-    # Scan web files
-    web_path_matches = scan_files(extensions=web_extensions)
-    sort_result = sort_files(path_matches=web_path_matches, output_path=web_output_path, filetype='web')
-    web_file_count = sort_result['path_matched_file_count']
-    web_unmatched_file_count = sort_result['unmatched_file_count']
-    web_sorted_file_count = sort_result['sorted_file_count']
-    web_unsorted_file_count = sort_result['unmoved_file_count']
+    # Scan web files, only web if specified
+    if (not web_only and not archive_only) or web_only:
+        web_path_matches = scan_files(extensions=web_extensions)
+        sort_result = sort_files(path_matches=web_path_matches, output_path=web_output_path, filetype='web')
+        web_file_count = sort_result['path_matched_file_count']
+        web_unmatched_file_count = sort_result['unmatched_file_count']
+        web_sorted_file_count = sort_result['sorted_file_count']
+        web_unsorted_file_count = sort_result['unmoved_file_count']
 
 # Summary report
 print('SORT COMPLETE')
