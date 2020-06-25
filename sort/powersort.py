@@ -27,6 +27,12 @@ import itertools
 ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--config", required=True, \
     help="Path to the configuration file to be used for processing images.")
+ap.add_argument("-s", "--source", required=False, \
+    help="Source directory - overrides source in config file")
+ap.add_argument("-j", "--web_destination", required=False, \
+    help="Destination web directory - overrides web destination in config file")
+ap.add_argument("-r", "--archive_destination", required=False, \
+    help="Destination archive/raw directory - overrides archive destination in config file")
 ap.add_argument("-v", "--verbose", action="store_true", \
     help="Detailed output.")
 ap.add_argument("-n", "--dry_run", action="store_true", \
@@ -81,6 +87,7 @@ def move_file(source=None, destination_directory=None, filename=None, filetype=N
             try:
                 shutil.move(source, destination)
                 status = 'success'
+                details = None
                 move_success = True
             except PermissionError:
                 status = 'fail'
@@ -97,7 +104,7 @@ def move_file(source=None, destination_directory=None, filename=None, filetype=N
 
 def sort_files(path_matches=None, output_path=None, filetype=None):
     """
-    Determine the appropraite destination for each file in path_matches.
+    Determine the appropriate destination for each file in path_matches.
     Call move_file to move into determined destination.
     """
     sorted_file_count = 0
@@ -180,6 +187,17 @@ try:
 except KeyError as e:
     print('Missing key in configuration file:', e)
     quit()
+
+# Use any configuration file overrides
+# Use source path from command line
+if args['source']:
+    source_directory_path = Path(args['source'])
+# Use web path from command line
+if args['web_destination']:
+    web_output_path = Path(args['web_destination'])
+# Use archive path from command line
+if args['archive_destination']:
+    archive_output_path = Path(args['archive_destination'])
 
 # Convert configuration strings to ints
 try:
