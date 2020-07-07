@@ -46,7 +46,10 @@ print(args)
 
 config = configparser.ConfigParser()
 config_file = args["config"]
-config.read(config_file)
+config_input = config.read(config_file)
+
+if len(config_input)==0:
+    raise ValueError('Failed to open config file: ' + config_file)
 
 dry_run = args["dry_run"]
 verbose = args["verbose"]
@@ -247,7 +250,10 @@ accession_id_pattern = re.compile(pattern_string)
 # Create log directory path if it does not exist
 log_path.mkdir(exist_ok=True)
 now = datetime.datetime.now()
-log_filename = collection_prefix + '_' + str(now.strftime('%Y-%m-%dT%H%M%S')) + '.csv'
+log_filename = collection_prefix + '_' + str(now.strftime('%Y-%m-%dT%H%M%S'))
+if dry_run:
+    log_filename = log_filename + '_DRY-RUN'
+log_filename = log_filename + '.csv'
 log_file_path = log_path.joinpath(log_filename)
 # get current username
 try:
