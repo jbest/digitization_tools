@@ -70,9 +70,10 @@ def move_file(source=None, destination_directory=None, filename=None, filetype=N
             print('Filename exists, cannot move:', destination)
         #TODO change to exception
         move_success = False
-        status = 'Filename exists'
+        status = 'fail'
+        details = 'filename exists'
         now = datetime.datetime.now()
-        writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': 'fail', \
+        writer.writerow({'timestamp': now, 'username': username, 'action': 'move', 'result': status, 'details': details,\
             'filetype': filetype, 'source': source, 'destination': destination})
         return {'move_success': move_success, 'status': status}
     else:
