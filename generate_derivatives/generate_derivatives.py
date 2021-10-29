@@ -13,17 +13,7 @@ from pathlib import Path
 
 THUMB_EXT = '_thumb'
 MED_EXT = '_med'
-"""
-# regex
-catalog_number_regex = "(?P<catNum>(?P<instID>BRIT)(-(?P<collID>XX)-)*(?P<numerical>\\d+))"
-web_jpg_regex = "(_(?P<suffix>a-z|0-9))*(\\.)(?i)(?P<ext>jpg|jpeg)"
-web_jpg_med_regex ="(_(?P<suffix>a-z|0-9))*(_)(?P<size>med)(\\.)(?i)(?P<ext>jpg|jpeg)"
-web_jpg_thumb_regex = "(_(?P<suffix>a-z|0-9))*(_)(?P<size>thumb)(\\.)(?i)(?P<ext>jpg|jpeg)"
 
-web_jpg_pattern = re.compile(catalog_number_regex + web_jpg_regex)
-web_jpg_med_pattern = re.compile(catalog_number_regex + web_jpg_med_regex)
-web_jpg_thumb_pattern = re.compile(catalog_number_regex + web_jpg_thumb_regex)
-"""
 
 def arg_setup():
     # set up argument parser
@@ -40,11 +30,12 @@ def arg_setup():
     return args
 
 def generate_derivatives(source_file=None):
+   print('Generating derivatives: ', str(source_file.name))
    image_directory = source_file.parent
    file_stem = source_file.stem
    thumb_path = image_directory.joinpath(file_stem + THUMB_EXT + source_file.suffix)
    med_path = image_directory.joinpath(file_stem + MED_EXT + source_file.suffix)
-   
+
    if not med_path.exists():
        try:
             image = Image.open(source_file)
@@ -78,14 +69,6 @@ def scan_files(path=None):
             if m:
                 file_path = scan_path.joinpath(file)
                 file_stem = file_path.stem
-                """
-                file_dict = m.groupdict()
-                #file_path = os.path.join(root, file)
-                file_name = file
-                file_dict['file_name'] = file_name
-                file_dict['file_stem'] = file_stem
-                file_dict['file_path'] = str(file_path)
-                """
                 # Evaluate file stem
                 if file_stem.endswith(THUMB_EXT):
                     file_type = 'thumb'
@@ -93,25 +76,17 @@ def scan_files(path=None):
                     file_type = 'medium'
                 else:
                     file_type = 'full'
-                    print('generate derivatives')
+                    #print('generate derivatives')
                     generate_derivatives(source_file=file_path)
-                #file_dict['file_type'] = file_type
-                #matches.append(file_dict)
-    #return matches
 
 if __name__ == '__main__':
     # set up argparse
     args = arg_setup()
-        #print(args)
     dry_run = args['dry_run']
     verbose = args['verbose']
     force_overwrite = args['force']
     input_path = args['input_path']
     scan_files(path=input_path)
-    #print(files)
-
-
-
 
 
 
