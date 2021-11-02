@@ -62,6 +62,7 @@ def scan_files(path=None):
     file_pattern = re.compile(pattern)
     for root, dirs, files in os.walk(path):
         root_path = Path(root)
+        #print('root_path:', root_path)
         for file in files:
             # print(os.path.join(root, file))
             m = file_pattern.match(file)
@@ -87,7 +88,9 @@ if __name__ == '__main__':
     force_overwrite = args['force']
     input_path = args['input_path']
     file_matches = scan_files(path=input_path)
-    bar = Bar('Processing', max=len(file_matches))
+    #print(file_matches)
+    #bar = Bar('Processing', max=len(file_matches), suffix='%(percent).1f%% - %(elapsed).1fs')
+    bar = Bar('Processing', max=len(file_matches), suffix='%(index)d/%(max)d - %(elapsed).1fs')
     for file in file_matches:
         generate_derivatives(source_file=file)
         bar.next()
