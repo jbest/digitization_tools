@@ -5,7 +5,7 @@ mccabe==0.6.1
 numpy==1.22.0
 olefile==0.44
 opencv-python==4.2.0.32
-Pillow==9.3.0
+Pillow==10.0.1
 pylint==1.7.2
 pyzbar==0.1.4
 six==1.10.0
